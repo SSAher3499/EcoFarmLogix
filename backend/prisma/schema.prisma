@@ -1,0 +1,327 @@
+// Prisma Schema for EcoFarmLogix
+// Smart Polyhouse & Farm Remote Monitoring System
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==========================================
+// USER MANAGEMENT
+// ==========================================
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  passwordHash  String    @map("password_hash")
+  fullName      String    @map("full_name")
+  phone         String?
+  role          UserRole  @default(OWNER)
+  isActive      Boolean   @default(true) @map("is_active")
+  lastLoginAt   DateTime? @map("last_login_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  farms         Farm[]
+  actionLogs    ActionLog[]
+  refreshTokens RefreshToken[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String   @map("user_id")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+}
+
+enum UserRole {
+  OWNER
+  MANAGER
+  VIEWER
+  ADMIN
+}
+
+// ==========================================
+// FARM MANAGEMENT
+// ==========================================
+
+model Farm {
+  id              String    @id @default(uuid())
+  userId          String    @map("user_id")
+  name            String
+  locationAddress String?   @map("location_address")
+  latitude        Decimal?  @db.Decimal(10, 8)
+  longitude       Decimal?  @db.Decimal(11, 8)
+  areaSqft        Decimal?  @map("area_sqft") @db.Decimal(10, 2)
+  farmType        FarmType  @default(POLYHOUSE) @map("farm_type")
+  timezone        String    @default("Asia/Kolkata")
+  isActive        Boolean   @default(true) @map("is_active")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  devices         Device[]
+  alertRules      AlertRule[]
+  alerts          Alert[]
+  automationRules AutomationRule[]
+  actionLogs      ActionLog[]
+
+  @@map("farms")
+}
+
+enum FarmType {
+  POLYHOUSE
+  GREENHOUSE
+  OPENFIELD
+  SHADENET
+  INDOOR
+}
+
+// ==========================================
+// DEVICE MANAGEMENT
+// ==========================================
+
+model Device {
+  id              String       @id @default(uuid())
+  farmId          String       @map("farm_id")
+  macAddress      String       @unique @map("mac_address")
+  deviceName      String       @map("device_name")
+  deviceType      DeviceType   @map("device_type")
+  firmwareVersion String?      @map("firmware_version")
+  isOnline        Boolean      @default(false) @map("is_online")
+  lastSeenAt      DateTime?    @map("last_seen_at")
+  ipAddress       String?      @map("ip_address")
+  config          Json?        @default("{}")
+  createdAt       DateTime     @default(now()) @map("created_at")
+  updatedAt       DateTime     @updatedAt @map("updated_at")
+
+  // Relations
+  farm      Farm       @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  sensors   Sensor[]
+  actuators Actuator[]
+
+  @@map("devices")
+}
+
+enum DeviceType {
+  GATEWAY
+  SENSOR_NODE
+  RELAY_NODE
+  CAMERA
+}
+
+// ==========================================
+// SENSOR MANAGEMENT
+// ==========================================
+
+model Sensor {
+  id                String     @id @default(uuid())
+  deviceId          String     @map("device_id")
+  sensorType        SensorType @map("sensor_type")
+  sensorName        String     @map("sensor_name")
+  unit              String
+  minThreshold      Decimal?   @map("min_threshold") @db.Decimal(10, 2)
+  maxThreshold      Decimal?   @map("max_threshold") @db.Decimal(10, 2)
+  calibrationOffset Decimal    @default(0) @map("calibration_offset") @db.Decimal(10, 4)
+  readingInterval   Int        @default(60) @map("reading_interval") // seconds
+  isActive          Boolean    @default(true) @map("is_active")
+  lastReading       Decimal?   @map("last_reading") @db.Decimal(10, 2)
+  lastReadingAt     DateTime?  @map("last_reading_at")
+  createdAt         DateTime   @default(now()) @map("created_at")
+  updatedAt         DateTime   @updatedAt @map("updated_at")
+
+  // Relations
+  device     Device      @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  alertRules AlertRule[]
+
+  @@map("sensors")
+}
+
+enum SensorType {
+  TEMPERATURE
+  HUMIDITY
+  SOIL_MOISTURE
+  SOIL_TEMPERATURE
+  LIGHT
+  CO2
+  PH
+  EC
+  WATER_FLOW
+  WATER_LEVEL
+  RAIN
+  WIND_SPEED
+  PRESSURE
+}
+
+// ==========================================
+// ACTUATOR MANAGEMENT
+// ==========================================
+
+model Actuator {
+  id           String       @id @default(uuid())
+  deviceId     String       @map("device_id")
+  actuatorType ActuatorType @map("actuator_type")
+  actuatorName String       @map("actuator_name")
+  gpioPin      Int?         @map("gpio_pin")
+  isActive     Boolean      @default(true) @map("is_active")
+  currentState String       @default("OFF") @map("current_state")
+  lastActionAt DateTime?    @map("last_action_at")
+  config       Json?        @default("{}")
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+
+  // Relations
+  device          Device           @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  actionLogs      ActionLog[]
+  automationRules AutomationRule[]
+
+  @@map("actuators")
+}
+
+enum ActuatorType {
+  FAN
+  EXHAUST_FAN
+  FOGGER
+  IRRIGATION_VALVE
+  SHADE_NET
+  GROW_LIGHT
+  HEATER
+  COOLER
+  DOSING_PUMP
+  WATER_PUMP
+}
+
+// ==========================================
+// ALERTS & AUTOMATION
+// ==========================================
+
+model AlertRule {
+  id              String        @id @default(uuid())
+  farmId          String        @map("farm_id")
+  sensorId        String        @map("sensor_id")
+  name            String
+  condition       AlertCondition
+  thresholdValue  Decimal       @map("threshold_value") @db.Decimal(10, 2)
+  alertType       AlertType     @map("alert_type")
+  isEnabled       Boolean       @default(true) @map("is_enabled")
+  cooldownMinutes Int           @default(30) @map("cooldown_minutes")
+  lastTriggeredAt DateTime?     @map("last_triggered_at")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  farm   Farm   @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  sensor Sensor @relation(fields: [sensorId], references: [id], onDelete: Cascade)
+
+  @@map("alert_rules")
+}
+
+model Alert {
+  id         String      @id @default(uuid())
+  farmId     String      @map("farm_id")
+  alertType  String      @map("alert_type")
+  severity   AlertSeverity
+  title      String
+  message    String
+  sensorData Json?       @map("sensor_data")
+  isRead     Boolean     @default(false) @map("is_read")
+  readAt     DateTime?   @map("read_at")
+  createdAt  DateTime    @default(now()) @map("created_at")
+
+  // Relations
+  farm Farm @relation(fields: [farmId], references: [id], onDelete: Cascade)
+
+  @@map("alerts")
+}
+
+enum AlertCondition {
+  GREATER_THAN
+  LESS_THAN
+  EQUAL_TO
+  GREATER_THAN_OR_EQUAL
+  LESS_THAN_OR_EQUAL
+}
+
+enum AlertType {
+  EMAIL
+  SMS
+  PUSH
+  WEBHOOK
+  IN_APP
+}
+
+enum AlertSeverity {
+  INFO
+  WARNING
+  CRITICAL
+}
+
+model AutomationRule {
+  id            String          @id @default(uuid())
+  farmId        String          @map("farm_id")
+  actuatorId    String          @map("actuator_id")
+  name          String
+  triggerType   TriggerType     @map("trigger_type")
+  triggerConfig Json            @map("trigger_config")
+  actionConfig  Json            @map("action_config")
+  isEnabled     Boolean         @default(true) @map("is_enabled")
+  lastRunAt     DateTime?       @map("last_run_at")
+  createdAt     DateTime        @default(now()) @map("created_at")
+  updatedAt     DateTime        @updatedAt @map("updated_at")
+
+  // Relations
+  farm     Farm     @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  actuator Actuator @relation(fields: [actuatorId], references: [id], onDelete: Cascade)
+
+  @@map("automation_rules")
+}
+
+enum TriggerType {
+  SENSOR_VALUE
+  SCHEDULE
+  TIME_RANGE
+  MANUAL
+}
+
+// ==========================================
+// ACTION LOGS
+// ==========================================
+
+model ActionLog {
+  id         String   @id @default(uuid())
+  farmId     String   @map("farm_id")
+  actuatorId String   @map("actuator_id")
+  userId     String?  @map("user_id")
+  action     String
+  value      String?
+  source     ActionSource
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  // Relations
+  farm     Farm      @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  actuator Actuator  @relation(fields: [actuatorId], references: [id], onDelete: Cascade)
+  user     User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("action_logs")
+}
+
+enum ActionSource {
+  MANUAL
+  AUTOMATION
+  SCHEDULE
+  SYSTEM
+}

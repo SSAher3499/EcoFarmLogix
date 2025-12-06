@@ -5,6 +5,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const { connectDatabase, disconnectDatabase } = require('./config/database');
 
 // Initialize Express app
 const app = express();
@@ -38,7 +39,7 @@ app.use(express.urlencoded({ extended: true }));
 // Health Check Route
 // ===================
 
-app.get('/health', (req, res) => {
+app.get('/health', async (req, res) => {
   res.status(200).json({
     status: 'OK',
     message: 'EcoFarmLogix API is running',
@@ -95,8 +96,18 @@ app.use((err, req, res, next) => {
 // Start Server
 // ===================
 
-app.listen(PORT, () => {
-  console.log(`
+async function startServer() {
+  // Connect to database
+  const dbConnected = await connectDatabase();
+  
+  if (!dbConnected) {
+    console.error('Failed to connect to database. Exiting...');
+    process.exit(1);
+  }
+
+  // Start Express server
+  app.listen(PORT, () => {
+    console.log(`
   ╔═══════════════════════════════════════════════════════════╗
   ║                                                           ║
   ║   🌱 EcoFarmLogix API Server                              ║
@@ -106,9 +117,27 @@ app.listen(PORT, () => {
   ║   → API Docs:   http://localhost:${PORT}/api/v1            ║
   ║                                                           ║
   ║   → Environment: ${process.env.NODE_ENV || 'development'}                          ║
+  ║   → Database:    Connected ✅                             ║
   ║                                                           ║
   ╚═══════════════════════════════════════════════════════════╝
-  `);
+    `);
+  });
+}
+
+// Graceful shutdown
+process.on('SIGINT', async () => {
+  console.log('\n🛑 Shutting down gracefully...');
+  await disconnectDatabase();
+  process.exit(0);
 });
+
+process.on('SIGTERM', async () => {
+  console.log('\n🛑 Shutting down gracefully...');
+  await disconnectDatabase();
+  process.exit(0);
+});
+
+// Start the server
+startServer();
 
 module.exports = app;
