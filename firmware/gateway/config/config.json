@@ -1,0 +1,65 @@
+{
+  "device": {
+    "name": "Farm Gateway",
+    "type": "GATEWAY"
+  },
+  "mqtt": {
+    "broker": "localhost",
+    "port": 1883,
+    "keepalive": 60,
+    "qos": 1
+  },
+  "cloud": {
+    "api_url": "http://localhost:3000/api/v1"
+  },
+  "sensors": {
+    "reading_interval": 30,
+    "sensors_config": [
+      {
+        "type": "TEMPERATURE",
+        "name": "Zone 1 Temperature",
+        "pin": 4,
+        "unit": "°C",
+        "enabled": true
+      },
+      {
+        "type": "HUMIDITY",
+        "name": "Zone 1 Humidity",
+        "pin": 4,
+        "unit": "%",
+        "enabled": true
+      },
+      {
+        "type": "SOIL_MOISTURE",
+        "name": "Zone 1 Soil",
+        "pin": 0,
+        "unit": "%",
+        "enabled": true
+      }
+    ]
+  },
+  "actuators": [
+    {
+      "type": "FAN",
+      "name": "Exhaust Fan 1",
+      "pin": 17,
+      "enabled": true
+    },
+    {
+      "type": "IRRIGATION_VALVE",
+      "name": "Irrigation Zone 1",
+      "pin": 27,
+      "enabled": true
+    },
+    {
+      "type": "FOGGER",
+      "name": "Fogger System",
+      "pin": 22,
+      "enabled": true
+    }
+  ],
+  "logging": {
+    "level": "INFO",
+    "file": "logs/gateway.log"
+  }
+}
