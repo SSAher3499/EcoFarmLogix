@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  # PostgreSQL - Main Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: ecofarm_postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ecofarm
+      POSTGRES_PASSWORD: ecofarm123
+      POSTGRES_DB: ecofarmlogix
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ecofarm -d ecofarmlogix"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis - Caching & Sessions
+  redis:
+    image: redis:7-alpine
+    container_name: ecofarm_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # InfluxDB - Time Series Database for Sensor Data
+  influxdb:
+    image: influxdb:2.7-alpine
+    container_name: ecofarm_influxdb
+    restart: unless-stopped
+    ports:
+      - "8086:8086"
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: admin
+      DOCKER_INFLUXDB_INIT_PASSWORD: admin12345
+      DOCKER_INFLUXDB_INIT_ORG: ecofarmlogix
+      DOCKER_INFLUXDB_INIT_BUCKET: sensor_data
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: my-super-secret-token
+    volumes:
+      - influxdb_data:/var/lib/influxdb2
+
+  # EMQX - MQTT Broker for IoT Devices
+  emqx:
+    image: emqx/emqx:5.3
+    container_name: ecofarm_emqx
+    restart: unless-stopped
+    ports:
+      - "1883:1883"     # MQTT
+      - "8083:8083"     # WebSocket
+      - "8084:8084"     # WebSocket SSL
+      - "8883:8883"     # MQTT SSL
+      - "18083:18083"   # Dashboard
+    environment:
+      EMQX_NAME: ecofarm_emqx
+      EMQX_HOST: 127.0.0.1
+    volumes:
+      - emqx_data:/opt/emqx/data
+
+volumes:
+  postgres_data:
+  redis_data:
+  influxdb_data:
+  emqx_data:
