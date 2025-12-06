@@ -6,6 +6,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const { connectDatabase, disconnectDatabase } = require('./config/database');
+const routes = require('./routes');
 
 // Initialize Express app
 const app = express();
@@ -52,20 +53,7 @@ app.get('/health', async (req, res) => {
 // API Routes (v1)
 // ===================
 
-app.get('/api/v1', (req, res) => {
-  res.json({
-    message: 'Welcome to EcoFarmLogix API',
-    version: '1.0.0',
-    endpoints: {
-      health: '/health',
-      auth: '/api/v1/auth',
-      farms: '/api/v1/farms',
-      devices: '/api/v1/devices',
-      sensors: '/api/v1/sensors',
-      actuators: '/api/v1/actuators'
-    }
-  });
-});
+app.use('/api/v1', routes);
 
 // ===================
 // 404 Handler
@@ -83,11 +71,14 @@ app.use((req, res) => {
 // ===================
 
 app.use((err, req, res, next) => {
-  console.error('Error:', err.stack);
+  console.error('Error:', err);
   
-  res.status(err.status || 500).json({
+  const status = err.status || 500;
+  const message = err.message || 'Internal server error';
+  
+  res.status(status).json({
     status: 'error',
-    message: err.message || 'Internal server error',
+    message,
     ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
   });
 });
@@ -114,7 +105,7 @@ async function startServer() {
   ║                                                           ║
   ║   → Local:      http://localhost:${PORT}                   ║
   ║   → Health:     http://localhost:${PORT}/health            ║
-  ║   → API Docs:   http://localhost:${PORT}/api/v1            ║
+  ║   → API:        http://localhost:${PORT}/api/v1            ║
   ║                                                           ║
   ║   → Environment: ${process.env.NODE_ENV || 'development'}                          ║
   ║   → Database:    Connected ✅                             ║
