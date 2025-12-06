@@ -7,6 +7,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const { connectDatabase, disconnectDatabase } = require('./config/database');
 const routes = require('./routes');
+const mqttService = require('./mqtt/mqtt.service');
 
 // Initialize Express app
 const app = express();
@@ -18,22 +19,15 @@ const PORT = process.env.PORT || 3000;
 // Middleware Setup
 // ===================
 
-// Security headers
 app.use(helmet());
 
-// CORS configuration
 app.use(cors({
   origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
   credentials: true
 }));
 
-// Request logging
 app.use(morgan('dev'));
-
-// Parse JSON bodies
 app.use(express.json());
-
-// Parse URL-encoded bodies
 app.use(express.urlencoded({ extended: true }));
 
 // ===================
@@ -45,7 +39,8 @@ app.get('/health', async (req, res) => {
     status: 'OK',
     message: 'EcoFarmLogix API is running',
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development'
+    environment: process.env.NODE_ENV || 'development',
+    mqtt: mqttService.isConnected ? 'connected' : 'disconnected'
   });
 });
 
@@ -96,6 +91,13 @@ async function startServer() {
     process.exit(1);
   }
 
+  // Connect to MQTT broker
+  try {
+    await mqttService.connect();
+  } catch (error) {
+    console.error('⚠️ MQTT connection failed, continuing without MQTT:', error.message);
+  }
+
   // Start Express server
   app.listen(PORT, () => {
     console.log(`
@@ -109,6 +111,7 @@ async function startServer() {
   ║                                                           ║
   ║   → Environment: ${process.env.NODE_ENV || 'development'}                          ║
   ║   → Database:    Connected ✅                             ║
+  ║   → MQTT:        ${mqttService.isConnected ? 'Connected ✅' : 'Disconnected ⚠️'}                        ║
   ║                                                           ║
   ╚═══════════════════════════════════════════════════════════╝
     `);
@@ -118,12 +121,14 @@ async function startServer() {
 // Graceful shutdown
 process.on('SIGINT', async () => {
   console.log('\n🛑 Shutting down gracefully...');
+  mqttService.disconnect();
   await disconnectDatabase();
   process.exit(0);
 });
 
 process.on('SIGTERM', async () => {
   console.log('\n🛑 Shutting down gracefully...');
+  mqttService.disconnect();
   await disconnectDatabase();
   process.exit(0);
 });

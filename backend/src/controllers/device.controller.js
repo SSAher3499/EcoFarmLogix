@@ -1,4 +1,5 @@
 const deviceService = require('../services/device.service');
+const mqttService = require('../mqtt/mqtt.service');
 
 class DeviceController {
   
@@ -151,7 +152,7 @@ class DeviceController {
 
   /**
    * PUT /api/v1/actuators/:actuatorId/control
-   * Control actuator (turn ON/OFF)
+   * Control actuator (turn ON/OFF) - with MQTT
    */
   async controlActuator(req, res, next) {
     try {
@@ -164,16 +165,35 @@ class DeviceController {
         });
       }
 
+      // Update state in database
       const actuator = await deviceService.updateActuatorState(
         req.params.actuatorId,
         state.toUpperCase(),
         req.user.userId
       );
 
+      // Send MQTT command to physical device
+      let mqttSent = false;
+      try {
+        if (mqttService.isConnected) {
+          await mqttService.sendActuatorCommand(
+            actuator.device.macAddress,
+            actuator.id,
+            state.toUpperCase()
+          );
+          mqttSent = true;
+        }
+      } catch (mqttError) {
+        console.error('MQTT command failed:', mqttError.message);
+      }
+
       res.status(200).json({
         status: 'success',
         message: `Actuator turned ${state.toUpperCase()}`,
-        data: { actuator }
+        data: { 
+          actuator,
+          mqttCommandSent: mqttSent
+        }
       });
     } catch (error) {
       next(error);

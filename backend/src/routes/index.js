@@ -6,12 +6,14 @@ const authRoutes = require('./auth.routes');
 const farmRoutes = require('./farm.routes');
 const deviceRoutes = require('./device.routes');
 const actuatorRoutes = require('./actuator.routes');
+const sensorRoutes = require('./sensor.routes');
 
 // Mount routes
 router.use('/auth', authRoutes);
 router.use('/farms', farmRoutes);
 router.use('/devices', deviceRoutes);
 router.use('/actuators', actuatorRoutes);
+router.use('/sensors', sensorRoutes);
 
 // API info route
 router.get('/', (req, res) => {
@@ -42,6 +44,10 @@ router.get('/', (req, res) => {
         delete: 'DELETE /api/v1/devices/:deviceId',
         addSensor: 'POST /api/v1/devices/:deviceId/sensors',
         addActuator: 'POST /api/v1/devices/:deviceId/actuators'
+      },
+      sensors: {
+        readings: 'GET /api/v1/sensors/:sensorId/readings',
+        latestByFarm: 'GET /api/v1/sensors/farm/:farmId/latest'
       },
       actuators: {
         control: 'PUT /api/v1/actuators/:actuatorId/control'
