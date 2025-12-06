@@ -187,6 +187,14 @@ class DeviceController {
         console.error('MQTT command failed:', mqttError.message);
       }
 
+      // Broadcast via WebSocket to all dashboard viewers
+      const websocketService = require('../services/websocket.service');
+      websocketService.broadcastActuatorState(
+      actuator.device.farmId,
+      actuator.id,
+      state.toUpperCase()
+        );
+
       res.status(200).json({
         status: 'success',
         message: `Actuator turned ${state.toUpperCase()}`,

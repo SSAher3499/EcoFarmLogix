@@ -2,15 +2,20 @@
 require('dotenv').config();
 
 const express = require('express');
+const http = require('http');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const { connectDatabase, disconnectDatabase } = require('./config/database');
 const routes = require('./routes');
 const mqttService = require('./mqtt/mqtt.service');
+const websocketService = require('./services/websocket.service');
 
 // Initialize Express app
 const app = express();
+
+// Create HTTP server (needed for Socket.io)
+const server = http.createServer(app);
 
 // Get port from environment or default to 3000
 const PORT = process.env.PORT || 3000;
@@ -19,7 +24,10 @@ const PORT = process.env.PORT || 3000;
 // Middleware Setup
 // ===================
 
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false,
+}));
 
 app.use(cors({
   origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
@@ -29,6 +37,9 @@ app.use(cors({
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Serve static files (for WebSocket test page)
+app.use(express.static('public'));
 
 // ===================
 // Health Check Route
@@ -40,7 +51,11 @@ app.get('/health', async (req, res) => {
     message: 'EcoFarmLogix API is running',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development',
-    mqtt: mqttService.isConnected ? 'connected' : 'disconnected'
+    services: {
+      mqtt: mqttService.isConnected ? 'connected' : 'disconnected',
+      websocket: websocketService.io ? 'running' : 'stopped',
+      websocketClients: websocketService.getConnectedClients()
+    }
   });
 });
 
@@ -91,6 +106,9 @@ async function startServer() {
     process.exit(1);
   }
 
+  // Initialize WebSocket server
+  websocketService.initialize(server);
+
   // Connect to MQTT broker
   try {
     await mqttService.connect();
@@ -98,8 +116,8 @@ async function startServer() {
     console.error('⚠️ MQTT connection failed, continuing without MQTT:', error.message);
   }
 
-  // Start Express server
-  app.listen(PORT, () => {
+  // Start HTTP server (not app.listen!)
+  server.listen(PORT, () => {
     console.log(`
   ╔═══════════════════════════════════════════════════════════╗
   ║                                                           ║
@@ -108,10 +126,12 @@ async function startServer() {
   ║   → Local:      http://localhost:${PORT}                   ║
   ║   → Health:     http://localhost:${PORT}/health            ║
   ║   → API:        http://localhost:${PORT}/api/v1            ║
+  ║   → WebSocket:  ws://localhost:${PORT}                     ║
   ║                                                           ║
   ║   → Environment: ${process.env.NODE_ENV || 'development'}                          ║
   ║   → Database:    Connected ✅                             ║
   ║   → MQTT:        ${mqttService.isConnected ? 'Connected ✅' : 'Disconnected ⚠️'}                        ║
+  ║   → WebSocket:   Running ✅                               ║
   ║                                                           ║
   ╚═══════════════════════════════════════════════════════════╝
     `);
@@ -136,4 +156,4 @@ process.on('SIGTERM', async () => {
 // Start the server
 startServer();
 
-module.exports = app;
+module.exports = { app, server };

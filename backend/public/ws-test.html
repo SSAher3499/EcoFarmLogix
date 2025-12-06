@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EcoFarmLogix WebSocket Test</title>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .card {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    h1 { color: #2e7d32; }
+    h2 { color: #333; margin-top: 0; }
+    input, button {
+      padding: 10px;
+      margin: 5px;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+    }
+    button {
+      background: #2e7d32;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover { background: #1b5e20; }
+    button:disabled { background: #ccc; }
+    #status {
+      padding: 10px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+    }
+    .connected { background: #c8e6c9; color: #2e7d32; }
+    .disconnected { background: #ffcdd2; color: #c62828; }
+    #logs {
+      background: #263238;
+      color: #aed581;
+      padding: 15px;
+      border-radius: 4px;
+      height: 300px;
+      overflow-y: auto;
+      font-family: monospace;
+      font-size: 13px;
+    }
+    .log-entry { margin: 5px 0; }
+    .log-sensor { color: #4fc3f7; }
+    .log-actuator { color: #ffb74d; }
+    .log-device { color: #ce93d8; }
+    .log-alert { color: #ef5350; }
+    .log-system { color: #aed581; }
+  </style>
+</head>
+<body>
+  <h1>🌱 EcoFarmLogix WebSocket Test</h1>
+  
+  <div class="card">
+    <h2>Connection</h2>
+    <div id="status" class="disconnected">Disconnected</div>
+    <input type="text" id="token" placeholder="Paste your access token here" style="width: 100%; box-sizing: border-box;">
+    <br>
+    <button onclick="connect()">Connect</button>
+    <button onclick="disconnect()">Disconnect</button>
+  </div>
+
+  <div class="card">
+    <h2>Subscribe to Farm</h2>
+    <input type="text" id="farmId" placeholder="Farm ID">
+    <button onclick="subscribeFarm()" id="subBtn" disabled>Subscribe</button>
+    <button onclick="unsubscribeFarm()" id="unsubBtn" disabled>Unsubscribe</button>
+  </div>
+
+  <div class="card">
+    <h2>📊 Live Events</h2>
+    <button onclick="clearLogs()">Clear Logs</button>
+    <div id="logs"></div>
+  </div>
+
+  <script>
+    let socket = null;
+
+    function log(message, type = 'system') {
+      const logs = document.getElementById('logs');
+      const entry = document.createElement('div');
+      entry.className = `log-entry log-${type}`;
+      entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+      logs.appendChild(entry);
+      logs.scrollTop = logs.scrollHeight;
+    }
+
+    function clearLogs() {
+      document.getElementById('logs').innerHTML = '';
+    }
+
+    function updateStatus(connected) {
+      const status = document.getElementById('status');
+      status.textContent = connected ? 'Connected ✅' : 'Disconnected ❌';
+      status.className = connected ? 'connected' : 'disconnected';
+      document.getElementById('subBtn').disabled = !connected;
+      document.getElementById('unsubBtn').disabled = !connected;
+    }
+
+    function connect() {
+      const token = document.getElementById('token').value.trim();
+      
+      if (!token) {
+        alert('Please enter your access token');
+        return;
+      }
+
+      log('Connecting to WebSocket server...');
+
+      socket = io('http://localhost:3000', {
+        auth: { token }
+      });
+
+      socket.on('connect', () => {
+        log('Connected to server!', 'system');
+        updateStatus(true);
+      });
+
+      socket.on('disconnect', (reason) => {
+        log(`Disconnected: ${reason}`, 'system');
+        updateStatus(false);
+      });
+
+      socket.on('connect_error', (error) => {
+        log(`Connection error: ${error.message}`, 'alert');
+        updateStatus(false);
+      });
+
+      // Listen for sensor updates
+      socket.on('sensor:update', (data) => {
+        log(`SENSOR UPDATE: ${JSON.stringify(data.data.sensors)}`, 'sensor');
+      });
+
+      // Listen for actuator updates
+      socket.on('actuator:update', (data) => {
+        log(`ACTUATOR UPDATE: ${data.actuatorId} → ${data.state}`, 'actuator');
+      });
+
+      // Listen for device status
+      socket.on('device:status', (data) => {
+        log(`DEVICE STATUS: ${data.deviceId} → ${data.isOnline ? 'ONLINE' : 'OFFLINE'}`, 'device');
+      });
+
+      // Listen for alerts
+      socket.on('alert:new', (data) => {
+        log(`🚨 ALERT: ${data.alert.title} - ${data.alert.message}`, 'alert');
+      });
+    }
+
+    function disconnect() {
+      if (socket) {
+        socket.disconnect();
+        socket = null;
+        log('Disconnected by user', 'system');
+        updateStatus(false);
+      }
+    }
+
+    function subscribeFarm() {
+      const farmId = document.getElementById('farmId').value.trim();
+      if (!farmId) {
+        alert('Please enter a Farm ID');
+        return;
+      }
+      if (socket) {
+        socket.emit('subscribe:farm', farmId);
+        log(`Subscribed to farm: ${farmId}`, 'system');
+      }
+    }
+
+    function unsubscribeFarm() {
+      const farmId = document.getElementById('farmId').value.trim();
+      if (!farmId) {
+        alert('Please enter a Farm ID');
+        return;
+      }
+      if (socket) {
+        socket.emit('unsubscribe:farm', farmId);
+        log(`Unsubscribed from farm: ${farmId}`, 'system');
+      }
+    }
+  </script>
+</body>
+</html>
