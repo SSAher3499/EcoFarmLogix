@@ -7,6 +7,7 @@ const farmRoutes = require('./farm.routes');
 const deviceRoutes = require('./device.routes');
 const actuatorRoutes = require('./actuator.routes');
 const sensorRoutes = require('./sensor.routes');
+const historyRoutes = require('./history.routes');
 
 // Mount routes
 router.use('/auth', authRoutes);
@@ -14,6 +15,7 @@ router.use('/farms', farmRoutes);
 router.use('/devices', deviceRoutes);
 router.use('/actuators', actuatorRoutes);
 router.use('/sensors', sensorRoutes);
+router.use('/', historyRoutes);
 
 // API info route
 router.get('/', (req, res) => {
@@ -34,7 +36,9 @@ router.get('/', (req, res) => {
         get: 'GET /api/v1/farms/:farmId',
         update: 'PUT /api/v1/farms/:farmId',
         delete: 'DELETE /api/v1/farms/:farmId',
-        dashboard: 'GET /api/v1/farms/:farmId/dashboard'
+        dashboard: 'GET /api/v1/farms/:farmId/dashboard',
+        history: 'GET /api/v1/farms/:farmId/history',
+        exportHistory: 'GET /api/v1/farms/:farmId/history/export'
       },
       devices: {
         register: 'POST /api/v1/farms/:farmId/devices',
@@ -47,6 +51,7 @@ router.get('/', (req, res) => {
       },
       sensors: {
         readings: 'GET /api/v1/sensors/:sensorId/readings',
+        history: 'GET /api/v1/sensors/:sensorId/history',
         latestByFarm: 'GET /api/v1/sensors/farm/:farmId/latest'
       },
       actuators: {

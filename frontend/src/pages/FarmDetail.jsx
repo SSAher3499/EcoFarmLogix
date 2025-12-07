@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { farmService } from '../services/farm.service';
 import { socketService } from '../services/socket.service';
 import { 
@@ -11,6 +11,7 @@ import {
   FiRefreshCw
 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
+import { ChartBarIcon } from '@heroicons/react/24/outline';
 
 // Sensor icon mapping
 const sensorIcons = {
@@ -153,13 +154,22 @@ export default function FarmDetail() {
           <h1 className="text-2xl font-bold text-gray-800">{dashboard.farm.name}</h1>
           <p className="text-gray-500">{dashboard.farm.location || dashboard.farm.farmType}</p>
         </div>
-        <button
-          onClick={loadDashboard}
-          className="flex items-center gap-2 text-gray-600 hover:text-primary-600"
-        >
-          <FiRefreshCw size={18} />
-          Refresh
-        </button>
+        <div className="flex items-center gap-3">
+          <Link
+            to={`/farms/${farmId}/history`}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            <ChartBarIcon className="w-5 h-5" />
+            View History
+          </Link>
+          <button
+            onClick={loadDashboard}
+            className="flex items-center gap-2 text-gray-600 hover:text-primary-600"
+          >
+            <FiRefreshCw size={18} />
+            Refresh
+          </button>
+        </div>
       </div>
 
       {/* Stats */}

@@ -8,6 +8,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import FarmDetail from './pages/FarmDetail';
+import FarmHistory from './pages/FarmHistory';
 
 // Components
 import ProtectedRoute from './components/common/ProtectedRoute';
@@ -55,6 +56,7 @@ function App() {
             <FarmDetail />
           </ProtectedRoute>
         } />
+        <Route path="/farms/:farmId/history" element={<FarmHistory />} />
 
         <Route path="/settings" element={
           <ProtectedRoute>

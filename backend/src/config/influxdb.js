@@ -48,13 +48,15 @@ async function writeSensorData(farmId, deviceMac, sensorType, sensorId, value, u
 /**
  * Query sensor data for a time range
  */
-async function querySensorData(farmId, sensorId, startTime, endTime) {
+async function querySensorData(sensorId, timeRange = '24h') {
   const query = `
     from(bucket: "${INFLUX_CONFIG.bucket}")
-      |> range(start: ${startTime}, stop: ${endTime})
-      |> filter(fn: (r) => r["farm_id"] == "${farmId}")
+      |> range(start: -${timeRange})
       |> filter(fn: (r) => r["sensor_id"] == "${sensorId}")
       |> filter(fn: (r) => r["_measurement"] == "sensor_reading")
+      |> filter(fn: (r) => r["_field"] == "value")
+      |> aggregateWindow(every: ${getAggregateWindow(timeRange)}, fn: mean, createEmpty: false)
+      |> yield(name: "mean")
   `;
 
   const results = [];
@@ -65,12 +67,60 @@ async function querySensorData(farmId, sensorId, startTime, endTime) {
         const data = tableMeta.toObject(row);
         results.push({
           time: data._time,
-          value: data._value,
+          value: Math.round(data._value * 100) / 100,
           sensorType: data.sensor_type
         });
       },
       error(error) {
-        reject(error);
+        console.error('InfluxDB query error:', error);
+        resolve([]); // Return empty array on error
+      },
+      complete() {
+        resolve(results);
+      }
+    });
+  });
+}
+
+/**
+ * Query multiple sensors for a farm
+ */
+async function queryFarmSensors(farmId, timeRange = '24h') {
+  const query = `
+    from(bucket: "${INFLUX_CONFIG.bucket}")
+      |> range(start: -${timeRange})
+      |> filter(fn: (r) => r["farm_id"] == "${farmId}")
+      |> filter(fn: (r) => r["_measurement"] == "sensor_reading")
+      |> filter(fn: (r) => r["_field"] == "value")
+      |> aggregateWindow(every: ${getAggregateWindow(timeRange)}, fn: mean, createEmpty: false)
+      |> yield(name: "mean")
+  `;
+
+  const results = {};
+  
+  return new Promise((resolve, reject) => {
+    queryApi.queryRows(query, {
+      next(row, tableMeta) {
+        const data = tableMeta.toObject(row);
+        const sensorId = data.sensor_id;
+        
+        if (!results[sensorId]) {
+          results[sensorId] = {
+            sensorId,
+            sensorType: data.sensor_type,
+            unit: data.unit,
+            data: []
+          };
+        }
+        
+        results[sensorId].data.push({
+          time: data._time,
+          value: Math.round(data._value * 100) / 100
+        });
+      },
+      error(error) {
+        console.error('InfluxDB query error:', error);
+        resolve({});
       },
       complete() {
         resolve(results);
@@ -88,6 +138,7 @@ async function getLatestReadings(farmId) {
       |> range(start: -1h)
       |> filter(fn: (r) => r["farm_id"] == "${farmId}")
       |> filter(fn: (r) => r["_measurement"] == "sensor_reading")
+      |> filter(fn: (r) => r["_field"] == "value")
       |> last()
   `;
 
@@ -100,13 +151,14 @@ async function getLatestReadings(farmId) {
         results.push({
           sensorId: data.sensor_id,
           sensorType: data.sensor_type,
-          value: data._value,
+          value: Math.round(data._value * 100) / 100,
           unit: data.unit,
           time: data._time
         });
       },
       error(error) {
-        reject(error);
+        console.error('InfluxDB query error:', error);
+        resolve([]);
       },
       complete() {
         resolve(results);
@@ -115,12 +167,68 @@ async function getLatestReadings(farmId) {
   });
 }
 
+/**
+ * Get sensor statistics (min, max, avg)
+ */
+async function getSensorStats(sensorId, timeRange = '24h') {
+  const queries = {
+    min: `from(bucket: "${INFLUX_CONFIG.bucket}")
+      |> range(start: -${timeRange})
+      |> filter(fn: (r) => r["sensor_id"] == "${sensorId}")
+      |> filter(fn: (r) => r["_field"] == "value")
+      |> min()`,
+    max: `from(bucket: "${INFLUX_CONFIG.bucket}")
+      |> range(start: -${timeRange})
+      |> filter(fn: (r) => r["sensor_id"] == "${sensorId}")
+      |> filter(fn: (r) => r["_field"] == "value")
+      |> max()`,
+    mean: `from(bucket: "${INFLUX_CONFIG.bucket}")
+      |> range(start: -${timeRange})
+      |> filter(fn: (r) => r["sensor_id"] == "${sensorId}")
+      |> filter(fn: (r) => r["_field"] == "value")
+      |> mean()`
+  };
+
+  const stats = { min: null, max: null, avg: null };
+
+  for (const [key, query] of Object.entries(queries)) {
+    await new Promise((resolve) => {
+      queryApi.queryRows(query, {
+        next(row, tableMeta) {
+          const data = tableMeta.toObject(row);
+          stats[key === 'mean' ? 'avg' : key] = Math.round(data._value * 100) / 100;
+        },
+        error() { resolve(); },
+        complete() { resolve(); }
+      });
+    });
+  }
+
+  return stats;
+}
+
+/**
+ * Get aggregate window based on time range
+ */
+function getAggregateWindow(timeRange) {
+  const windows = {
+    '1h': '1m',
+    '6h': '5m',
+    '24h': '15m',
+    '7d': '1h',
+    '30d': '6h'
+  };
+  return windows[timeRange] || '15m';
+}
+
 module.exports = {
   influxDB,
   writeApi,
   queryApi,
   writeSensorData,
   querySensorData,
+  queryFarmSensors,
   getLatestReadings,
+  getSensorStats,
   INFLUX_CONFIG
 };
