@@ -52,14 +52,23 @@ function App() {
           </ProtectedRoute>
         } />
 
-        <Route path="/farms/new" element={<AddFarm />} />
+        <Route path="/farms/new" element={
+  <ProtectedRoute>
+    <AddFarm />
+  </ProtectedRoute>
+} />
         
         <Route path="/farms/:farmId" element={
           <ProtectedRoute>
             <FarmDetail />
           </ProtectedRoute>
         } />
-        <Route path="/farms/:farmId/history" element={<FarmHistory />} />
+        
+        <Route path="/farms/:farmId/history" element={
+  <ProtectedRoute>
+    <FarmHistory />
+  </ProtectedRoute>
+} />
 
         <Route path="/settings" element={
           <ProtectedRoute>
