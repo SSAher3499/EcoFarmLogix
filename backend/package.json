@@ -25,6 +25,7 @@
   "dependencies": {
     "@influxdata/influxdb-client": "^1.35.0",
     "@prisma/client": "^5.22.0",
+    "axios": "^1.13.2",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
     "dayjs": "^1.11.19",

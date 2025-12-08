@@ -8,14 +8,16 @@ const deviceRoutes = require('./device.routes');
 const actuatorRoutes = require('./actuator.routes');
 const sensorRoutes = require('./sensor.routes');
 const historyRoutes = require('./history.routes');
+const weatherRoutes = require('./weather.routes');
 
 // Mount routes
 router.use('/auth', authRoutes);
+router.use('/weather', weatherRoutes);  // Move weather BEFORE history
 router.use('/farms', farmRoutes);
 router.use('/devices', deviceRoutes);
 router.use('/actuators', actuatorRoutes);
 router.use('/sensors', sensorRoutes);
-router.use('/', historyRoutes);
+router.use('/', historyRoutes);  // Keep history at the end
 
 // API info route
 router.get('/', (req, res) => {
@@ -56,6 +58,11 @@ router.get('/', (req, res) => {
       },
       actuators: {
         control: 'PUT /api/v1/actuators/:actuatorId/control'
+      },
+      weather: {
+        byCoords: 'GET /api/v1/weather?lat=XX&lon=YY',
+        byCity: 'GET /api/v1/weather/city/:cityName',
+        byFarm: 'GET /api/v1/farms/:farmId/weather (auth required)'
       }
     }
   });
