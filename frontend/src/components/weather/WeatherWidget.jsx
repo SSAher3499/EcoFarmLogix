@@ -27,7 +27,6 @@ const WeatherWidget = ({ farmId, city, showForecast = true, showRecommendations 
         response = await weatherService.getWeatherByCity(city);
         setWeather(response.data);
       } else {
-        // Default to Pune if no location provided
         response = await weatherService.getWeatherByCity('Pune');
         setWeather(response.data);
       }
@@ -39,7 +38,7 @@ const WeatherWidget = ({ farmId, city, showForecast = true, showRecommendations 
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 w-full overflow-hidden">
       {/* Current Weather Card */}
       <WeatherCard weather={weather} loading={loading} error={error} />
       

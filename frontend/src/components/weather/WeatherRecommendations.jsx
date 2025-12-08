@@ -12,22 +12,22 @@ const WeatherRecommendations = ({ recommendations }) => {
   }
 
   return (
-    <div className="bg-white rounded-xl p-6 shadow">
-      <h3 className="text-lg font-semibold text-gray-800 mb-4">
-        🌱 Farming Recommendations
+    <div className="bg-white rounded-xl p-4 shadow">
+      <h3 className="text-sm font-semibold text-gray-800 mb-3">
+        🌱 Recommendations
       </h3>
       
-      <div className="space-y-3">
+      <div className="space-y-2">
         {recommendations.map((rec, index) => (
           <div 
             key={index}
-            className={`p-4 rounded-lg border ${priorityColors[rec.priority] || priorityColors.low}`}
+            className={`p-3 rounded-lg border ${priorityColors[rec.priority] || priorityColors.low}`}
           >
-            <div className="flex items-start gap-3">
-              <span className="text-2xl">{rec.icon}</span>
-              <div>
-                <h4 className="font-semibold">{rec.title}</h4>
-                <p className="text-sm mt-1 opacity-90">{rec.message}</p>
+            <div className="flex items-start gap-2">
+              <span className="text-lg flex-shrink-0">{rec.icon}</span>
+              <div className="min-w-0">
+                <h4 className="font-semibold text-sm">{rec.title}</h4>
+                <p className="text-xs mt-1 opacity-90 break-words">{rec.message}</p>
               </div>
             </div>
           </div>

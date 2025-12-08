@@ -14,48 +14,36 @@ const WeatherForecast = ({ forecast }) => {
     if (date.toDateString() === today.toDateString()) {
       return 'Today';
     } else if (date.toDateString() === tomorrow.toDateString()) {
-      return 'Tomorrow';
+      return 'Tmrw';
     }
-    return date.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric' });
+    return date.toLocaleDateString('en-IN', { weekday: 'short' });
   };
 
   return (
-    <div className="bg-white rounded-xl p-6 shadow">
-      <h3 className="text-lg font-semibold text-gray-800 mb-4">7-Day Forecast</h3>
+    <div className="bg-white rounded-xl p-4 shadow">
+      <h3 className="text-sm font-semibold text-gray-800 mb-3">7-Day Forecast</h3>
       
-      <div className="space-y-3">
+      <div className="space-y-2">
         {forecast.slice(0, 7).map((day, index) => (
           <div 
             key={index}
-            className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0"
+            className="flex items-center justify-between py-1 border-b border-gray-100 last:border-0"
           >
-            <div className="flex items-center gap-3 w-28">
-              <span className="text-2xl">{day.icon}</span>
-              <span className="text-sm font-medium text-gray-700">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="text-lg flex-shrink-0">{day.icon}</span>
+              <span className="text-xs font-medium text-gray-700 w-12 flex-shrink-0">
                 {formatDate(day.date)}
               </span>
             </div>
             
-            <div className="flex-1 px-4">
-              <div className="flex items-center gap-2">
-                {day.precipitationProbability > 30 && (
-                  <span className="text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
-                    💧 {day.precipitationProbability}%
-                  </span>
-                )}
-                <span className="text-xs text-gray-500 truncate">
-                  {day.description}
+            <div className="flex items-center gap-1 flex-shrink-0">
+              {day.precipitationProbability > 30 && (
+                <span className="text-xs text-blue-600">
+                  💧{day.precipitationProbability}%
                 </span>
-              </div>
-            </div>
-            
-            <div className="text-right">
-              <span className="text-sm font-semibold text-gray-800">
-                {Math.round(day.tempMax)}°
-              </span>
-              <span className="text-sm text-gray-400 mx-1">/</span>
-              <span className="text-sm text-gray-500">
-                {Math.round(day.tempMin)}°
+              )}
+              <span className="text-xs font-semibold text-gray-800 w-14 text-right">
+                {Math.round(day.tempMax)}° / {Math.round(day.tempMin)}°
               </span>
             </div>
           </div>

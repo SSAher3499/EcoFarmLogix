@@ -327,14 +327,11 @@ export default function FarmDetail() {
           )}
         </div>
 
-        {/* Right column: weather sidebar (aligned with main content, not with stats) */}
+        {/* Right column: weather sidebar */}
         <aside className="lg:col-span-1">
           <div className="sticky top-20">
-            {/* constrain height a bit on very tall widgets and allow internal scroll so it doesn't affect layout */}
-            <div className="max-h-[70vh] overflow-auto">
-              <div className="bg-white rounded-lg shadow p-4">
-                <WeatherWidget farmId={farmId} showForecast={true} showRecommendations={true} />
-              </div>
+            <div className="overflow-hidden">
+              <WeatherWidget farmId={farmId} showForecast={true} showRecommendations={true} />
             </div>
           </div>
         </aside>
