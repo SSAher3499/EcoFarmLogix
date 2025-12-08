@@ -9,6 +9,7 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import FarmDetail from './pages/FarmDetail';
 import FarmHistory from './pages/FarmHistory';
+import AddFarm from './pages/AddFarm';
 
 // Components
 import ProtectedRoute from './components/common/ProtectedRoute';
@@ -50,6 +51,8 @@ function App() {
             <Dashboard />
           </ProtectedRoute>
         } />
+
+        <Route path="/farms/new" element={<AddFarm />} />
         
         <Route path="/farms/:farmId" element={
           <ProtectedRoute>
