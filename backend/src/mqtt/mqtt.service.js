@@ -3,6 +3,7 @@ const { MQTT_CONFIG, TOPICS } = require('../config/mqtt');
 const { prisma } = require('../config/database');
 const { writeSensorData } = require('../config/influxdb');
 const websocketService = require('../services/websocket.service');
+const automationService = require('../services/automation.service');
 
 class MQTTService {
   constructor() {
@@ -183,6 +184,11 @@ class MQTTService {
 
     // Check thresholds
     await this.checkThresholds(device.farm, sensor, calibratedValue);
+
+    // Evaluate automation rules
+    await automationService.evaluateSensorRules(sensor.id, calibratedValue, device.farmId);
+
+
 
     // Return update for WebSocket broadcast
     return {

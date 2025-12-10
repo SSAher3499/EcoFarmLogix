@@ -9,6 +9,7 @@ const actuatorRoutes = require('./actuator.routes');
 const sensorRoutes = require('./sensor.routes');
 const historyRoutes = require('./history.routes');
 const weatherRoutes = require('./weather.routes');
+const automationRoutes = require('./automation.routes');
 
 // Mount routes
 router.use('/auth', authRoutes);
@@ -18,6 +19,7 @@ router.use('/devices', deviceRoutes);
 router.use('/actuators', actuatorRoutes);
 router.use('/sensors', sensorRoutes);
 router.use('/', historyRoutes);  // Keep history at the end
+router.use('/', automationRoutes);
 
 // API info route
 router.get('/', (req, res) => {

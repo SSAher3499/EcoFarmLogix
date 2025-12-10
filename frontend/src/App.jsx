@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { useAuthStore } from './store/authStore';
 
+
 // Pages
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -10,6 +11,7 @@ import Dashboard from './pages/Dashboard';
 import FarmDetail from './pages/FarmDetail';
 import FarmHistory from './pages/FarmHistory';
 import AddFarm from './pages/AddFarm';
+import AutomationRules from './pages/AutomationRules';
 
 // Components
 import ProtectedRoute from './components/common/ProtectedRoute';
@@ -63,7 +65,11 @@ function App() {
             <FarmDetail />
           </ProtectedRoute>
         } />
-        
+        <Route path="/farms/:farmId/automation" element={
+  <ProtectedRoute>
+    <AutomationRules />
+  </ProtectedRoute>
+} />
         <Route path="/farms/:farmId/history" element={
   <ProtectedRoute>
     <FarmHistory />

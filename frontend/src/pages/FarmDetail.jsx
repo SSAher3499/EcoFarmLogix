@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { farmService } from '../services/farm.service';
 import WeatherWidget from '../components/weather/WeatherWidget';
 import { socketService } from '../services/socket.service';
+import { FiZap } from 'react-icons/fi';
 import {
   FiThermometer,
   FiDroplet,
@@ -182,6 +183,13 @@ export default function FarmDetail() {
             <ChartBarIcon className="w-5 h-5" />
             View History
           </Link>
+          <Link
+  to={`/farms/${farmId}/automation`}
+  className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+>
+  <FiZap className="w-5 h-5" />
+  Automation
+</Link>
 
           <button
             type="button"
