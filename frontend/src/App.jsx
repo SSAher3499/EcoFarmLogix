@@ -12,6 +12,7 @@ import FarmDetail from './pages/FarmDetail';
 import FarmHistory from './pages/FarmHistory';
 import AddFarm from './pages/AddFarm';
 import AutomationRules from './pages/AutomationRules';
+import DeviceManagement from './pages/DeviceManagement';
 
 // Components
 import ProtectedRoute from './components/common/ProtectedRoute';
@@ -70,6 +71,13 @@ function App() {
     <AutomationRules />
   </ProtectedRoute>
 } />
+
+<Route path="/farms/:farmId/devices" element={
+  <ProtectedRoute>
+    <DeviceManagement />
+  </ProtectedRoute>
+} />
+
         <Route path="/farms/:farmId/history" element={
   <ProtectedRoute>
     <FarmHistory />
