@@ -1,30 +1,32 @@
-const { prisma } = require('../config/database');
+const { prisma } = require("../config/database");
 
 class DeviceService {
-  
   /**
    * Register a new device to a farm (by MAC address)
    */
   async registerDevice(farmId, userId, deviceData) {
     // Verify farm belongs to user
     const farm = await prisma.farm.findFirst({
-      where: { id: farmId, userId }
+      where: { id: farmId, userId },
     });
 
     if (!farm) {
-      throw { status: 404, message: 'Farm not found' };
+      throw { status: 404, message: "Farm not found" };
     }
 
     // Normalize MAC address (uppercase, colons)
-    const macAddress = deviceData.macAddress.toUpperCase().replace(/-/g, ':');
+    const macAddress = deviceData.macAddress.toUpperCase().replace(/-/g, ":");
 
     // Check if device with this MAC already exists
     const existingDevice = await prisma.device.findUnique({
-      where: { macAddress }
+      where: { macAddress },
     });
 
     if (existingDevice) {
-      throw { status: 409, message: 'Device with this MAC address already registered' };
+      throw {
+        status: 409,
+        message: "Device with this MAC address already registered",
+      };
     }
 
     // Create device
@@ -35,8 +37,8 @@ class DeviceService {
         deviceName: deviceData.deviceName,
         deviceType: deviceData.deviceType,
         firmwareVersion: deviceData.firmwareVersion,
-        config: deviceData.config || {}
-      }
+        config: deviceData.config || {},
+      },
     });
 
     return device;
@@ -48,20 +50,20 @@ class DeviceService {
   async getFarmDevices(farmId, userId) {
     // Verify farm belongs to user
     const farm = await prisma.farm.findFirst({
-      where: { id: farmId, userId }
+      where: { id: farmId, userId },
     });
 
     if (!farm) {
-      throw { status: 404, message: 'Farm not found' };
+      throw { status: 404, message: "Farm not found" };
     }
 
     const devices = await prisma.device.findMany({
       where: { farmId },
       include: {
         sensors: true,
-        actuators: true
+        actuators: true,
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: "desc" },
     });
 
     return devices;
@@ -76,35 +78,61 @@ class DeviceService {
       include: {
         farm: true,
         sensors: true,
-        actuators: true
-      }
+        actuators: true,
+      },
     });
 
     if (!device) {
-      throw { status: 404, message: 'Device not found' };
+      throw { status: 404, message: "Device not found" };
     }
 
     // Verify ownership
     if (device.farm.userId !== userId) {
-      throw { status: 403, message: 'Access denied' };
+      throw { status: 403, message: "Access denied" };
     }
 
     return device;
   }
 
+
   /**
-   * Get device by MAC address (for device authentication)
+   * Get device by MAC address (public - for edge devices)
    */
-  async getDeviceByMac(macAddress) {
-    const normalizedMac = macAddress.toUpperCase().replace(/-/g, ':');
-    
+  async getDeviceByMacPublic(macAddress) {
+    const normalizedMac = macAddress.toUpperCase().replace(/-/g, ":");
+
     const device = await prisma.device.findUnique({
       where: { macAddress: normalizedMac },
       include: {
-        farm: true,
-        sensors: true,
-        actuators: true
-      }
+        farm: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        sensors: {
+          where: { isActive: true },
+          select: {
+            id: true,
+            sensorType: true,
+            sensorName: true,
+            unit: true,
+            lastReading: true,
+            minThreshold: true,
+            maxThreshold: true,
+          },
+        },
+        actuators: {
+          where: { isActive: true },
+          select: {
+            id: true,
+            actuatorType: true,
+            actuatorName: true,
+            gpioPin: true,
+            currentState: true,
+          },
+        },
+      },
     });
 
     return device;
@@ -121,8 +149,8 @@ class DeviceService {
       data: updateData,
       include: {
         sensors: true,
-        actuators: true
-      }
+        actuators: true,
+      },
     });
 
     return updatedDevice;
@@ -132,7 +160,7 @@ class DeviceService {
    * Update device status (called by device/MQTT)
    */
   async updateDeviceStatus(macAddress, status) {
-    const normalizedMac = macAddress.toUpperCase().replace(/-/g, ':');
+    const normalizedMac = macAddress.toUpperCase().replace(/-/g, ":");
 
     const device = await prisma.device.update({
       where: { macAddress: normalizedMac },
@@ -140,8 +168,8 @@ class DeviceService {
         isOnline: status.isOnline,
         lastSeenAt: new Date(),
         ipAddress: status.ipAddress,
-        firmwareVersion: status.firmwareVersion
-      }
+        firmwareVersion: status.firmwareVersion,
+      },
     });
 
     return device;
@@ -154,10 +182,10 @@ class DeviceService {
     await this.getDeviceById(deviceId, userId);
 
     await prisma.device.delete({
-      where: { id: deviceId }
+      where: { id: deviceId },
     });
 
-    return { message: 'Device deleted successfully' };
+    return { message: "Device deleted successfully" };
   }
 
   /**
@@ -175,8 +203,8 @@ class DeviceService {
         minThreshold: sensorData.minThreshold,
         maxThreshold: sensorData.maxThreshold,
         calibrationOffset: sensorData.calibrationOffset || 0,
-        readingInterval: sensorData.readingInterval || 60
-      }
+        readingInterval: sensorData.readingInterval || 60,
+      },
     });
 
     return sensor;
@@ -194,8 +222,8 @@ class DeviceService {
         actuatorType: actuatorData.actuatorType,
         actuatorName: actuatorData.actuatorName,
         gpioPin: actuatorData.gpioPin,
-        config: actuatorData.config || {}
-      }
+        config: actuatorData.config || {},
+      },
     });
 
     return actuator;
@@ -209,8 +237,8 @@ class DeviceService {
       where: { id: sensorId },
       data: {
         lastReading: value,
-        lastReadingAt: new Date()
-      }
+        lastReadingAt: new Date(),
+      },
     });
 
     return sensor;
@@ -224,13 +252,13 @@ class DeviceService {
       where: { id: actuatorId },
       data: {
         currentState: state,
-        lastActionAt: new Date()
+        lastActionAt: new Date(),
       },
       include: {
         device: {
-          include: { farm: true }
-        }
-      }
+          include: { farm: true },
+        },
+      },
     });
 
     // Log the action
@@ -240,8 +268,8 @@ class DeviceService {
         actuatorId: actuatorId,
         userId: userId,
         action: state,
-        source: userId ? 'MANUAL' : 'SYSTEM'
-      }
+        source: userId ? "MANUAL" : "SYSTEM",
+      },
     });
 
     return actuator;

@@ -1,8 +1,7 @@
-const deviceService = require('../services/device.service');
-const mqttService = require('../mqtt/mqtt.service');
+const deviceService = require("../services/device.service");
+const mqttService = require("../mqtt/mqtt.service");
 
 class DeviceController {
-  
   /**
    * POST /api/v1/farms/:farmId/devices
    * Register new device by MAC address
@@ -16,9 +15,9 @@ class DeviceController {
       );
 
       res.status(201).json({
-        status: 'success',
-        message: 'Device registered successfully',
-        data: { device }
+        status: "success",
+        message: "Device registered successfully",
+        data: { device },
       });
     } catch (error) {
       next(error);
@@ -36,11 +35,11 @@ class DeviceController {
       );
 
       res.status(200).json({
-        status: 'success',
-        data: { 
+        status: "success",
+        data: {
           devices,
-          count: devices.length 
-        }
+          count: devices.length,
+        },
       });
     } catch (error) {
       next(error);
@@ -58,8 +57,8 @@ class DeviceController {
       );
 
       res.status(200).json({
-        status: 'success',
-        data: { device }
+        status: "success",
+        data: { device },
       });
     } catch (error) {
       next(error);
@@ -78,9 +77,9 @@ class DeviceController {
       );
 
       res.status(200).json({
-        status: 'success',
-        message: 'Device updated successfully',
-        data: { device }
+        status: "success",
+        message: "Device updated successfully",
+        data: { device },
       });
     } catch (error) {
       next(error);
@@ -98,8 +97,8 @@ class DeviceController {
       );
 
       res.status(200).json({
-        status: 'success',
-        ...result
+        status: "success",
+        ...result,
       });
     } catch (error) {
       next(error);
@@ -119,9 +118,9 @@ class DeviceController {
       );
 
       res.status(201).json({
-        status: 'success',
-        message: 'Sensor added successfully',
-        data: { sensor }
+        status: "success",
+        message: "Sensor added successfully",
+        data: { sensor },
       });
     } catch (error) {
       next(error);
@@ -141,9 +140,35 @@ class DeviceController {
       );
 
       res.status(201).json({
-        status: 'success',
-        message: 'Actuator added successfully',
-        data: { actuator }
+        status: "success",
+        message: "Actuator added successfully",
+        data: { actuator },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * GET /api/v1/devices/mac/:macAddress
+   * Public endpoint for edge devices to get their config
+   */
+  async getDeviceByMac(req, res, next) {
+    try {
+      const device = await deviceService.getDeviceByMacPublic(
+        req.params.macAddress
+      );
+
+      if (!device) {
+        return res.status(404).json({
+          status: "error",
+          message: "Device not found",
+        });
+      }
+
+      res.status(200).json({
+        status: "success",
+        data: { device },
       });
     } catch (error) {
       next(error);
@@ -157,11 +182,11 @@ class DeviceController {
   async controlActuator(req, res, next) {
     try {
       const { state } = req.body;
-      
-      if (!state || !['ON', 'OFF'].includes(state.toUpperCase())) {
+
+      if (!state || !["ON", "OFF"].includes(state.toUpperCase())) {
         return res.status(400).json({
-          status: 'error',
-          message: 'Invalid state. Use ON or OFF'
+          status: "error",
+          message: "Invalid state. Use ON or OFF",
         });
       }
 
@@ -184,24 +209,24 @@ class DeviceController {
           mqttSent = true;
         }
       } catch (mqttError) {
-        console.error('MQTT command failed:', mqttError.message);
+        console.error("MQTT command failed:", mqttError.message);
       }
 
       // Broadcast via WebSocket to all dashboard viewers
-      const websocketService = require('../services/websocket.service');
+      const websocketService = require("../services/websocket.service");
       websocketService.broadcastActuatorState(
-      actuator.device.farmId,
-      actuator.id,
-      state.toUpperCase()
-        );
+        actuator.device.farmId,
+        actuator.id,
+        state.toUpperCase()
+      );
 
       res.status(200).json({
-        status: 'success',
+        status: "success",
         message: `Actuator turned ${state.toUpperCase()}`,
-        data: { 
+        data: {
           actuator,
-          mqttCommandSent: mqttSent
-        }
+          mqttCommandSent: mqttSent,
+        },
       });
     } catch (error) {
       next(error);

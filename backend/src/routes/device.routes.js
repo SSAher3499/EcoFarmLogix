@@ -9,6 +9,9 @@ const {
   createActuatorSchema 
 } = require('../validators/device.validator');
 
+// Public route for edge devices (no auth required)
+router.get('/devices/mac/:macAddress', deviceController.getDeviceByMac);
+
 // All routes require authentication
 router.use(authenticate);
 
