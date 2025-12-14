@@ -94,7 +94,6 @@ class DeviceService {
     return device;
   }
 
-
   /**
    * Get device by MAC address (public - for edge devices)
    */
@@ -273,6 +272,49 @@ class DeviceService {
     });
 
     return actuator;
+  }
+
+  /**
+   * Get device by MAC address (public - for edge devices)
+   */
+  async getDeviceByMacPublic(macAddress) {
+    const normalizedMac = macAddress.toUpperCase().replace(/-/g, ":");
+
+    const device = await prisma.device.findUnique({
+      where: { macAddress: normalizedMac },
+      include: {
+        farm: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        sensors: {
+          where: { isActive: true },
+          select: {
+            id: true,
+            sensorType: true,
+            sensorName: true,
+            unit: true,
+            lastReading: true,
+            minThreshold: true,
+            maxThreshold: true,
+          },
+        },
+        actuators: {
+          where: { isActive: true },
+          select: {
+            id: true,
+            actuatorType: true,
+            actuatorName: true,
+            gpioPin: true,
+            currentState: true,
+          },
+        },
+      },
+    });
+
+    return device;
   }
 }
 

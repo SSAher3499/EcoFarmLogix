@@ -232,6 +232,32 @@ class DeviceController {
       next(error);
     }
   }
+
+  /**
+   * GET /api/v1/devices/mac/:macAddress
+   * Public endpoint for edge devices to get their config
+   */
+  async getDeviceByMac(req, res, next) {
+    try {
+      const device = await deviceService.getDeviceByMacPublic(
+        req.params.macAddress
+      );
+
+      if (!device) {
+        return res.status(404).json({
+          status: "error",
+          message: "Device not found",
+        });
+      }
+
+      res.status(200).json({
+        status: "success",
+        data: { device },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new DeviceController();
