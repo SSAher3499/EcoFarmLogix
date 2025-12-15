@@ -21,7 +21,7 @@ const TOPICS = {
   DEVICE_STATUS: 'farm/+/status',          // Device online/offline
   
   // Publish patterns (to devices)
-  ACTUATOR_COMMAND: (mac) => `farm/${mac}/actuators/command`,
+  ACTUATOR_COMMAND: (mac) => `farm/${mac}/actuator/command`,
   CONFIG_UPDATE: (mac) => `farm/${mac}/config`
 };
 
