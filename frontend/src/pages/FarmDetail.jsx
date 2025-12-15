@@ -55,10 +55,20 @@ export default function FarmDetail() {
   useEffect(() => {
     loadDashboard();
 
-    // Connect WebSocket
+    // Connect WebSocket and subscribe
     const token = localStorage.getItem("accessToken");
-    socketService.connect(token);
-    socketService.subscribeFarm(farmId);
+
+    const setupSocket = async () => {
+      await socketService.connect(token);
+      socketService.subscribeFarm(farmId);
+
+      // Set up listeners AFTER connection
+      socketService.onSensorUpdate(onSensor);
+      socketService.onActuatorUpdate(onActuator);
+      socketService.onAlert(onAlert);
+    };
+
+    setupSocket();
 
     // Sensor update handler
     const onSensor = (data) => {
@@ -95,11 +105,17 @@ export default function FarmDetail() {
 
     // Actuator update handler
     const onActuator = (data) => {
+      console.log("📥 WebSocket actuator:update received:", data);
+
       setDashboard((prev) => {
         if (!prev) return prev;
         const actuatorId = data?.actuatorId;
         const state = data?.state;
-        if (!actuatorId) return prev;
+
+        if (!actuatorId) {
+          console.warn("⚠️ No actuatorId in data");
+          return prev;
+        }
 
         const updatedDevices = prev.devices.map((device) => ({
           ...device,
@@ -109,6 +125,7 @@ export default function FarmDetail() {
               : actuator
           ),
         }));
+
         return { ...prev, devices: updatedDevices };
       });
     };
@@ -124,14 +141,9 @@ export default function FarmDetail() {
       }
     };
 
-    socketService.onSensorUpdate(onSensor);
-    socketService.onActuatorUpdate(onActuator);
-    socketService.onAlert(onAlert);
-
-    // Cleanup: unsubscribe and remove listeners
+    // Cleanup
     return () => {
       socketService.unsubscribeFarm(farmId);
-      // Prefer removing specific listeners if socketService exposes off functions.
       socketService.removeAllListeners();
     };
   }, [farmId, loadDashboard]);
