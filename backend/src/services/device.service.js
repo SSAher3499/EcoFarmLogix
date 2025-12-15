@@ -244,7 +244,80 @@ class DeviceService {
   }
 
   /**
-   * Update actuator state
+   * Control actuator - sends MQTT command to Pi and broadcasts to website
+   */
+  async controlActuator(actuatorId, command, userId) {
+    // Get actuator with device info
+    const actuator = await prisma.actuator.findUnique({
+      where: { id: actuatorId },
+      include: {
+        device: {
+          include: { farm: true }
+        }
+      }
+    });
+
+    if (!actuator) {
+      throw { status: 404, message: "Actuator not found" };
+    }
+
+    // Verify ownership
+    if (actuator.device.farm.userId !== userId) {
+      throw { status: 403, message: "Access denied" };
+    }
+
+    // Update state in database
+    const updatedActuator = await prisma.actuator.update({
+      where: { id: actuatorId },
+      data: { 
+        currentState: command,
+        lastActionAt: new Date()
+      },
+      include: {
+        device: true
+      }
+    });
+
+    // Send MQTT command to Pi
+    const mqttService = require('../mqtt/mqtt.service');
+    try {
+      await mqttService.sendActuatorCommand(
+        actuator.device.macAddress,
+        actuatorId,
+        command,
+        actuator.gpioPin
+      );
+      console.log(`📤 MQTT command sent to Pi: ${actuator.actuatorName} -> ${command}`);
+    } catch (err) {
+      console.error('❌ Failed to send MQTT command:', err.message);
+      // Continue anyway - state is updated in DB
+    }
+
+    // Log the action
+    await prisma.actionLog.create({
+      data: {
+        farmId: actuator.device.farmId,
+        actuatorId: actuatorId,
+        userId: userId,
+        action: command,
+        source: 'MANUAL'
+      }
+    }).catch(() => {}); // Ignore if table doesn't exist
+
+    // Broadcast to all website clients via WebSocket
+    const websocketService = require('./websocket.service');
+    websocketService.broadcastActuatorState(actuator.device.farmId, {
+      actuatorId,
+      state: command,
+      deviceId: actuator.deviceId,
+      gpioPin: actuator.gpioPin
+    });
+
+    return updatedActuator;
+  }
+
+  /**
+   * Update actuator state (legacy method)
    */
   async updateActuatorState(actuatorId, state, userId = null) {
     const actuator = await prisma.actuator.update({
@@ -269,52 +342,9 @@ class DeviceService {
         action: state,
         source: userId ? "MANUAL" : "SYSTEM",
       },
-    });
+    }).catch(() => {});
 
     return actuator;
-  }
-
-  /**
-   * Get device by MAC address (public - for edge devices)
-   */
-  async getDeviceByMacPublic(macAddress) {
-    const normalizedMac = macAddress.toUpperCase().replace(/-/g, ":");
-
-    const device = await prisma.device.findUnique({
-      where: { macAddress: normalizedMac },
-      include: {
-        farm: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        sensors: {
-          where: { isActive: true },
-          select: {
-            id: true,
-            sensorType: true,
-            sensorName: true,
-            unit: true,
-            lastReading: true,
-            minThreshold: true,
-            maxThreshold: true,
-          },
-        },
-        actuators: {
-          where: { isActive: true },
-          select: {
-            id: true,
-            actuatorType: true,
-            actuatorName: true,
-            gpioPin: true,
-            currentState: true,
-          },
-        },
-      },
-    });
-
-    return device;
   }
 }
 

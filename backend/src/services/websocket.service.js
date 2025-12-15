@@ -95,17 +95,39 @@ class WebSocketService {
 
   /**
    * Broadcast actuator state change
+   * @param {string} farmId - Farm ID
+   * @param {object|string} data - Either an object with actuator details or actuatorId string
+   * @param {string} state - State (only used if data is actuatorId string)
    */
-  broadcastActuatorState(farmId, actuatorId, state) {
+  broadcastActuatorState(farmId, data, state = null) {
     if (!this.io) return;
 
-    this.io.to(`farm:${farmId}`).emit('actuator:update', {
-      type: 'actuator:update',
-      farmId,
-      actuatorId,
-      state,
-      timestamp: new Date().toISOString()
-    });
+    let payload;
+    
+    // Support both old signature (farmId, actuatorId, state) and new signature (farmId, {actuatorId, state, ...})
+    if (typeof data === 'object') {
+      payload = {
+        type: 'actuator:update',
+        farmId,
+        actuatorId: data.actuatorId,
+        state: data.state,
+        deviceId: data.deviceId,
+        gpioPin: data.gpioPin,
+        timestamp: new Date().toISOString()
+      };
+    } else {
+      // Old signature: data is actuatorId
+      payload = {
+        type: 'actuator:update',
+        farmId,
+        actuatorId: data,
+        state: state,
+        timestamp: new Date().toISOString()
+      };
+    }
+
+    this.io.to(`farm:${farmId}`).emit('actuator:update', payload);
+    console.log(`📡 WebSocket broadcast: actuator:update to farm:${farmId}`);
   }
 
   /**

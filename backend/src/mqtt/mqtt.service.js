@@ -188,8 +188,6 @@ class MQTTService {
     // Evaluate automation rules
     await automationService.evaluateSensorRules(sensor.id, calibratedValue, device.farmId);
 
-
-
     // Return update for WebSocket broadcast
     return {
       sensorId: sensor.id,
@@ -246,10 +244,51 @@ class MQTTService {
   }
 
   /**
-   * Handle device status updates
+   * Handle device status updates (including actuator state changes from Pi)
    */
   async handleDeviceStatus(macAddress, payload) {
     try {
+      // Handle actuator state change from Pi
+      if (payload.type === 'actuator_state_change') {
+        console.log(`📨 Actuator state change from Pi: ${payload.actuatorId} -> ${payload.state}`);
+        
+        // Update database
+        const actuator = await prisma.actuator.update({
+          where: { id: payload.actuatorId },
+          data: { 
+            currentState: payload.state,
+            lastActionAt: new Date()
+          },
+          include: { 
+            device: {
+              include: { farm: true }
+            }
+          }
+        });
+
+        // Log the action
+        await prisma.actionLog.create({
+          data: {
+            farmId: actuator.device.farmId,
+            actuatorId: payload.actuatorId,
+            action: payload.state,
+            source: 'DEVICE'
+          }
+        }).catch(() => {}); // Ignore if table doesn't exist
+
+        // Broadcast to website via WebSocket
+        websocketService.broadcastActuatorState(actuator.device.farmId, {
+          actuatorId: payload.actuatorId,
+          state: payload.state,
+          deviceId: actuator.deviceId,
+          gpioPin: payload.gpioPin
+        });
+
+        console.log(`✅ Actuator state synced to website: ${actuator.actuatorName} -> ${payload.state}`);
+        return;
+      }
+
+      // Handle regular device status update
       const { online, ipAddress, firmwareVersion } = payload;
 
       const device = await prisma.device.update({
@@ -273,9 +312,9 @@ class MQTTService {
   }
 
   /**
-   * Send command to actuator
+   * Send command to actuator (called when user controls from website)
    */
-  async sendActuatorCommand(macAddress, actuatorId, command) {
+  async sendActuatorCommand(macAddress, actuatorId, command, gpioPin = null) {
     if (!this.isConnected) {
       throw new Error('MQTT not connected');
     }
@@ -284,6 +323,7 @@ class MQTTService {
     const payload = JSON.stringify({
       actuatorId,
       command,
+      gpioPin,
       timestamp: new Date().toISOString()
     });
 
@@ -293,7 +333,7 @@ class MQTTService {
           console.error(`❌ Failed to send command to ${macAddress}:`, err.message);
           reject(err);
         } else {
-          console.log(`📤 Command sent to ${macAddress}: ${command}`);
+          console.log(`📤 Command sent to Pi: ${macAddress} -> ${actuatorId} -> ${command}`);
           resolve(true);
         }
       });
