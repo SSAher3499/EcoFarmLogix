@@ -97,4 +97,51 @@ router.get('/farm/:farmId/latest', async (req, res, next) => {
   }
 });
 
+/**
+ * DELETE /api/v1/sensors/:sensorId
+ * Delete a sensor
+ */
+router.delete('/:sensorId', async (req, res, next) => {
+  try {
+    const { sensorId } = req.params;
+
+    // Find sensor with device info
+    const sensor = await prisma.sensor.findUnique({
+      where: { id: sensorId },
+      include: {
+        device: {
+          include: { farm: true }
+        }
+      }
+    });
+
+    if (!sensor) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Sensor not found'
+      });
+    }
+
+    // Verify ownership
+    if (sensor.device.farm.userId !== req.user.userId) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'Access denied'
+      });
+    }
+
+    // Delete sensor
+    await prisma.sensor.delete({
+      where: { id: sensorId }
+    });
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Sensor deleted successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 module.exports = router;
