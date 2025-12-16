@@ -1,9 +1,9 @@
-const mqtt = require('mqtt');
-const { MQTT_CONFIG, TOPICS } = require('../config/mqtt');
-const { prisma } = require('../config/database');
-const { writeSensorData } = require('../config/influxdb');
-const websocketService = require('../services/websocket.service');
-const automationService = require('../services/automation.service');
+const mqtt = require("mqtt");
+const { MQTT_CONFIG, TOPICS } = require("../config/mqtt");
+const { prisma } = require("../config/database");
+const { writeSensorData } = require("../config/influxdb");
+const websocketService = require("../services/websocket.service");
+const automationService = require("../services/automation.service");
 
 class MQTTService {
   constructor() {
@@ -16,33 +16,33 @@ class MQTTService {
    */
   connect() {
     return new Promise((resolve, reject) => {
-      console.log('📡 Connecting to MQTT broker...');
-      
+      console.log("📡 Connecting to MQTT broker...");
+
       this.client = mqtt.connect(MQTT_CONFIG.brokerUrl, MQTT_CONFIG.options);
 
-      this.client.on('connect', () => {
+      this.client.on("connect", () => {
         this.isConnected = true;
-        console.log('✅ MQTT connected to broker');
-        
+        console.log("✅ MQTT connected to broker");
+
         this.subscribeToTopics();
         resolve(true);
       });
 
-      this.client.on('error', (error) => {
-        console.error('❌ MQTT connection error:', error.message);
+      this.client.on("error", (error) => {
+        console.error("❌ MQTT connection error:", error.message);
         reject(error);
       });
 
-      this.client.on('close', () => {
+      this.client.on("close", () => {
         this.isConnected = false;
-        console.log('📴 MQTT connection closed');
+        console.log("📴 MQTT connection closed");
       });
 
-      this.client.on('reconnect', () => {
-        console.log('🔄 MQTT reconnecting...');
+      this.client.on("reconnect", () => {
+        console.log("🔄 MQTT reconnecting...");
       });
 
-      this.client.on('message', this.handleMessage.bind(this));
+      this.client.on("message", this.handleMessage.bind(this));
     });
   }
 
@@ -53,10 +53,10 @@ class MQTTService {
     const topics = [
       TOPICS.SENSOR_DATA,
       TOPICS.SENSOR_SPECIFIC,
-      TOPICS.DEVICE_STATUS
+      TOPICS.DEVICE_STATUS,
     ];
 
-    topics.forEach(topic => {
+    topics.forEach((topic) => {
       this.client.subscribe(topic, (err) => {
         if (err) {
           console.error(`❌ Failed to subscribe to ${topic}:`, err.message);
@@ -73,18 +73,18 @@ class MQTTService {
   async handleMessage(topic, message) {
     try {
       const payload = JSON.parse(message.toString());
-      const topicParts = topic.split('/');
+      const topicParts = topic.split("/");
       const macAddress = topicParts[1];
 
       console.log(`📨 MQTT [${topic}]:`, payload);
 
-      if (topic.includes('/sensors')) {
+      if (topic.includes("/sensors")) {
         await this.handleSensorData(macAddress, payload);
-      } else if (topic.includes('/status')) {
+      } else if (topic.includes("/status")) {
         await this.handleDeviceStatus(macAddress, payload);
       }
     } catch (error) {
-      console.error('❌ Error handling MQTT message:', error.message);
+      console.error("❌ Error handling MQTT message:", error.message);
     }
   }
 
@@ -95,10 +95,10 @@ class MQTTService {
     try {
       const device = await prisma.device.findUnique({
         where: { macAddress: macAddress.toUpperCase() },
-        include: { 
+        include: {
           farm: true,
-          sensors: true 
-        }
+          sensors: true,
+        },
       });
 
       if (!device) {
@@ -109,24 +109,48 @@ class MQTTService {
       // Update device last seen
       await prisma.device.update({
         where: { id: device.id },
-        data: { 
-          isOnline: true, 
-          lastSeenAt: new Date() 
-        }
+        data: {
+          isOnline: true,
+          lastSeenAt: new Date(),
+        },
       });
 
       // Collect sensor updates for WebSocket broadcast
-      const sensorUpdates = [];
+      let sensorUpdates = [];
 
       // Process sensor readings
       if (payload.sensorType && payload.value !== undefined) {
-        const update = await this.processSensorReading(device, payload.sensorType, payload.value);
-        if (update) sensorUpdates.push(update);
+        const update = await this.processSensorReading(
+          device,
+          payload.sensorType,
+          payload.value
+        );
+        if (update) {
+          if (Array.isArray(update)) {
+            sensorUpdates = sensorUpdates.concat(update);
+          } else {
+            sensorUpdates.push(update);
+          }
+        }
       } else {
         for (const [sensorType, value] of Object.entries(payload)) {
-          if (value !== null && value !== undefined) {
-            const update = await this.processSensorReading(device, sensorType.toUpperCase(), value);
-            if (update) sensorUpdates.push(update);
+          if (
+            value !== null &&
+            value !== undefined &&
+            sensorType !== "lastUpdate"
+          ) {
+            const update = await this.processSensorReading(
+              device,
+              sensorType.toUpperCase(),
+              value
+            );
+            if (update) {
+              if (Array.isArray(update)) {
+                sensorUpdates = sensorUpdates.concat(update);
+              } else {
+                sensorUpdates.push(update);
+              }
+            }
           }
         }
       }
@@ -136,13 +160,13 @@ class MQTTService {
         websocketService.broadcastSensorData(device.farmId, {
           deviceId: device.id,
           deviceMac: device.macAddress,
-          sensors: sensorUpdates
+          sensors: sensorUpdates,
         });
       }
 
       console.log(`✅ Sensor data processed for ${macAddress}`);
     } catch (error) {
-      console.error('❌ Error processing sensor data:', error.message);
+      console.error("❌ Error processing sensor data:", error.message);
     }
   }
 
@@ -150,53 +174,69 @@ class MQTTService {
    * Process individual sensor reading
    */
   async processSensorReading(device, sensorType, value) {
-    const sensor = device.sensors.find(s => 
-      s.sensorType === sensorType || 
-      s.sensorType === sensorType.toUpperCase().replace('_', '') ||
-      s.sensorType.replace('_', '') === sensorType.toUpperCase()
+    // Find ALL sensors of this type for this device
+    const matchingSensors = device.sensors.filter(
+      (s) =>
+        s.sensorType === sensorType ||
+        s.sensorType === sensorType.toUpperCase() ||
+        s.sensorType.toUpperCase().replace("_", "") ===
+          sensorType.toUpperCase().replace("_", "")
     );
 
-    if (!sensor) {
-      console.warn(`⚠️ Sensor type ${sensorType} not configured for device ${device.macAddress}`);
+    if (matchingSensors.length === 0) {
+      console.warn(
+        `⚠️ Sensor type ${sensorType} not configured for device ${device.macAddress}`
+      );
       return null;
     }
 
-    const calibratedValue = parseFloat(value) + parseFloat(sensor.calibrationOffset || 0);
+    const updates = [];
 
-    // Update PostgreSQL
-    await prisma.sensor.update({
-      where: { id: sensor.id },
-      data: {
-        lastReading: calibratedValue,
-        lastReadingAt: new Date()
-      }
-    });
+    // Update ALL matching sensors (in case there are multiple of same type)
+    for (const sensor of matchingSensors) {
+      const calibratedValue =
+        parseFloat(value) + parseFloat(sensor.calibrationOffset || 0);
 
-    // Write to InfluxDB
-    await writeSensorData(
-      device.farmId,
-      device.macAddress,
-      sensorType,
-      sensor.id,
-      calibratedValue,
-      sensor.unit
-    );
+      // Update PostgreSQL
+      await prisma.sensor.update({
+        where: { id: sensor.id },
+        data: {
+          lastReading: calibratedValue,
+          lastReadingAt: new Date(),
+        },
+      });
 
-    // Check thresholds
-    await this.checkThresholds(device.farm, sensor, calibratedValue);
+      // Write to InfluxDB
+      await writeSensorData(
+        device.farmId,
+        device.macAddress,
+        sensorType,
+        sensor.id,
+        calibratedValue,
+        sensor.unit
+      );
 
-    // Evaluate automation rules
-    await automationService.evaluateSensorRules(sensor.id, calibratedValue, device.farmId);
+      // Check thresholds
+      await this.checkThresholds(device.farm, sensor, calibratedValue);
 
-    // Return update for WebSocket broadcast
-    return {
-      sensorId: sensor.id,
-      sensorType: sensor.sensorType,
-      sensorName: sensor.sensorName,
-      value: calibratedValue,
-      unit: sensor.unit,
-      timestamp: new Date().toISOString()
-    };
+      // Evaluate automation rules
+      await automationService.evaluateSensorRules(
+        sensor.id,
+        calibratedValue,
+        device.farmId
+      );
+
+      updates.push({
+        sensorId: sensor.id,
+        sensorType: sensor.sensorType,
+        sensorName: sensor.sensorName,
+        value: calibratedValue,
+        unit: sensor.unit,
+        timestamp: new Date().toISOString(),
+      });
+    }
+
+    return updates.length === 1 ? updates[0] : updates;
   }
 
   /**
@@ -204,21 +244,23 @@ class MQTTService {
    */
   async checkThresholds(farm, sensor, value) {
     let alertMessage = null;
-    let severity = 'WARNING';
+    let severity = "WARNING";
 
     if (sensor.maxThreshold && value > parseFloat(sensor.maxThreshold)) {
       alertMessage = `${sensor.sensorName} is too HIGH: ${value}${sensor.unit} (threshold: ${sensor.maxThreshold}${sensor.unit})`;
-      severity = value > parseFloat(sensor.maxThreshold) * 1.2 ? 'CRITICAL' : 'WARNING';
+      severity =
+        value > parseFloat(sensor.maxThreshold) * 1.2 ? "CRITICAL" : "WARNING";
     } else if (sensor.minThreshold && value < parseFloat(sensor.minThreshold)) {
       alertMessage = `${sensor.sensorName} is too LOW: ${value}${sensor.unit} (threshold: ${sensor.minThreshold}${sensor.unit})`;
-      severity = value < parseFloat(sensor.minThreshold) * 0.8 ? 'CRITICAL' : 'WARNING';
+      severity =
+        value < parseFloat(sensor.minThreshold) * 0.8 ? "CRITICAL" : "WARNING";
     }
 
     if (alertMessage) {
       const alert = await prisma.alert.create({
         data: {
           farmId: farm.id,
-          alertType: 'THRESHOLD',
+          alertType: "THRESHOLD",
           severity: severity,
           title: `${sensor.sensorType} Alert`,
           message: alertMessage,
@@ -226,9 +268,9 @@ class MQTTService {
             sensorId: sensor.id,
             sensorType: sensor.sensorType,
             value: value,
-            unit: sensor.unit
-          }
-        }
+            unit: sensor.unit,
+          },
+        },
       });
 
       // Broadcast alert via WebSocket
@@ -236,9 +278,9 @@ class MQTTService {
         id: alert.id,
         severity: alert.severity,
         title: alert.title,
-        message: alert.message
+        message: alert.message,
       });
-      
+
       console.log(`🚨 Alert created: ${alertMessage}`);
     }
   }
@@ -249,42 +291,48 @@ class MQTTService {
   async handleDeviceStatus(macAddress, payload) {
     try {
       // Handle actuator state change from Pi
-      if (payload.type === 'actuator_state_change') {
-        console.log(`📨 Actuator state change from Pi: ${payload.actuatorId} -> ${payload.state}`);
-        
+      if (payload.type === "actuator_state_change") {
+        console.log(
+          `📨 Actuator state change from Pi: ${payload.actuatorId} -> ${payload.state}`
+        );
+
         // Update database
         const actuator = await prisma.actuator.update({
           where: { id: payload.actuatorId },
-          data: { 
+          data: {
             currentState: payload.state,
-            lastActionAt: new Date()
+            lastActionAt: new Date(),
           },
-          include: { 
+          include: {
             device: {
-              include: { farm: true }
-            }
-          }
+              include: { farm: true },
+            },
+          },
         });
 
         // Log the action
-        await prisma.actionLog.create({
-          data: {
-            farmId: actuator.device.farmId,
-            actuatorId: payload.actuatorId,
-            action: payload.state,
-            source: 'DEVICE'
-          }
-        }).catch(() => {}); // Ignore if table doesn't exist
+        await prisma.actionLog
+          .create({
+            data: {
+              farmId: actuator.device.farmId,
+              actuatorId: payload.actuatorId,
+              action: payload.state,
+              source: "DEVICE",
+            },
+          })
+          .catch(() => {}); // Ignore if table doesn't exist
 
         // Broadcast to website via WebSocket
         websocketService.broadcastActuatorState(actuator.device.farmId, {
           actuatorId: payload.actuatorId,
           state: payload.state,
           deviceId: actuator.deviceId,
-          gpioPin: payload.gpioPin
+          gpioPin: payload.gpioPin,
         });
 
-        console.log(`✅ Actuator state synced to website: ${actuator.actuatorName} -> ${payload.state}`);
+        console.log(
+          `✅ Actuator state synced to website: ${actuator.actuatorName} -> ${payload.state}`
+        );
         return;
       }
 
@@ -297,17 +345,23 @@ class MQTTService {
           isOnline: online !== false,
           lastSeenAt: new Date(),
           ipAddress: ipAddress || null,
-          firmwareVersion: firmwareVersion || undefined
+          firmwareVersion: firmwareVersion || undefined,
         },
-        include: { farm: true }
+        include: { farm: true },
       });
 
       // Broadcast device status via WebSocket
-      websocketService.broadcastDeviceStatus(device.farmId, device.id, device.isOnline);
+      websocketService.broadcastDeviceStatus(
+        device.farmId,
+        device.id,
+        device.isOnline
+      );
 
-      console.log(`✅ Device status: ${macAddress} - ${device.isOnline ? 'ONLINE' : 'OFFLINE'}`);
+      console.log(
+        `✅ Device status: ${macAddress} - ${device.isOnline ? "ONLINE" : "OFFLINE"}`
+      );
     } catch (error) {
-      console.error('❌ Error updating device status:', error.message);
+      console.error("❌ Error updating device status:", error.message);
     }
   }
 
@@ -316,7 +370,7 @@ class MQTTService {
    */
   async sendActuatorCommand(macAddress, actuatorId, command, gpioPin = null) {
     if (!this.isConnected) {
-      throw new Error('MQTT not connected');
+      throw new Error("MQTT not connected");
     }
 
     const topic = TOPICS.ACTUATOR_COMMAND(macAddress);
@@ -324,16 +378,21 @@ class MQTTService {
       actuatorId,
       command,
       gpioPin,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
 
     return new Promise((resolve, reject) => {
       this.client.publish(topic, payload, { qos: 1 }, (err) => {
         if (err) {
-          console.error(`❌ Failed to send command to ${macAddress}:`, err.message);
+          console.error(
+            `❌ Failed to send command to ${macAddress}:`,
+            err.message
+          );
           reject(err);
         } else {
-          console.log(`📤 Command sent to Pi: ${macAddress} -> ${actuatorId} -> ${command}`);
+          console.log(
+            `📤 Command sent to Pi: ${macAddress} -> ${actuatorId} -> ${command}`
+          );
           resolve(true);
         }
       });
@@ -345,7 +404,7 @@ class MQTTService {
    */
   async sendConfigUpdate(macAddress, config) {
     if (!this.isConnected) {
-      throw new Error('MQTT not connected');
+      throw new Error("MQTT not connected");
     }
 
     const topic = TOPICS.CONFIG_UPDATE(macAddress);
@@ -369,7 +428,7 @@ class MQTTService {
   disconnect() {
     if (this.client) {
       this.client.end();
-      console.log('📴 MQTT disconnected');
+      console.log("📴 MQTT disconnected");
     }
   }
 }

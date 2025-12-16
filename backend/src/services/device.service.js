@@ -252,9 +252,9 @@ class DeviceService {
       where: { id: actuatorId },
       include: {
         device: {
-          include: { farm: true }
-        }
-      }
+          include: { farm: true },
+        },
+      },
     });
 
     if (!actuator) {
@@ -269,17 +269,17 @@ class DeviceService {
     // Update state in database
     const updatedActuator = await prisma.actuator.update({
       where: { id: actuatorId },
-      data: { 
+      data: {
         currentState: command,
-        lastActionAt: new Date()
+        lastActionAt: new Date(),
       },
       include: {
-        device: true
-      }
+        device: true,
+      },
     });
 
     // Send MQTT command to Pi
-    const mqttService = require('../mqtt/mqtt.service');
+    const mqttService = require("../mqtt/mqtt.service");
     try {
       await mqttService.sendActuatorCommand(
         actuator.device.macAddress,
@@ -287,30 +287,34 @@ class DeviceService {
         command,
         actuator.gpioPin
       );
-      console.log(`📤 MQTT command sent to Pi: ${actuator.actuatorName} -> ${command}`);
+      console.log(
+        `📤 MQTT command sent to Pi: ${actuator.actuatorName} -> ${command}`
+      );
     } catch (err) {
-      console.error('❌ Failed to send MQTT command:', err.message);
+      console.error("❌ Failed to send MQTT command:", err.message);
       // Continue anyway - state is updated in DB
     }
 
     // Log the action
-    await prisma.actionLog.create({
-      data: {
-        farmId: actuator.device.farmId,
-        actuatorId: actuatorId,
-        userId: userId,
-        action: command,
-        source: 'MANUAL'
-      }
-    }).catch(() => {}); // Ignore if table doesn't exist
+    await prisma.actionLog
+      .create({
+        data: {
+          farmId: actuator.device.farmId,
+          actuatorId: actuatorId,
+          userId: userId,
+          action: command,
+          source: "MANUAL",
+        },
+      })
+      .catch(() => {}); // Ignore if table doesn't exist
 
     // Broadcast to all website clients via WebSocket
-    const websocketService = require('./websocket.service');
+    const websocketService = require("./websocket.service");
     websocketService.broadcastActuatorState(actuator.device.farmId, {
       actuatorId,
       state: command,
       deviceId: actuator.deviceId,
-      gpioPin: actuator.gpioPin
+      gpioPin: actuator.gpioPin,
     });
 
     return updatedActuator;
@@ -334,17 +338,80 @@ class DeviceService {
     });
 
     // Log the action
-    await prisma.actionLog.create({
-      data: {
-        farmId: actuator.device.farmId,
-        actuatorId: actuatorId,
-        userId: userId,
-        action: state,
-        source: userId ? "MANUAL" : "SYSTEM",
-      },
-    }).catch(() => {});
+    await prisma.actionLog
+      .create({
+        data: {
+          farmId: actuator.device.farmId,
+          actuatorId: actuatorId,
+          userId: userId,
+          action: state,
+          source: userId ? "MANUAL" : "SYSTEM",
+        },
+      })
+      .catch(() => {});
 
     return actuator;
+  }
+  /**
+   * Delete sensor
+   */
+  async deleteSensor(sensorId, userId) {
+    // Find sensor with device info
+    const sensor = await prisma.sensor.findUnique({
+      where: { id: sensorId },
+      include: {
+        device: {
+          include: { farm: true },
+        },
+      },
+    });
+
+    if (!sensor) {
+      throw { status: 404, message: "Sensor not found" };
+    }
+
+    // Verify ownership
+    if (sensor.device.farm.userId !== userId) {
+      throw { status: 403, message: "Access denied" };
+    }
+
+    // Delete sensor
+    await prisma.sensor.delete({
+      where: { id: sensorId },
+    });
+
+    return { message: "Sensor deleted successfully" };
+  }
+
+  /**
+   * Delete actuator
+   */
+  async deleteActuator(actuatorId, userId) {
+    // Find actuator with device info
+    const actuator = await prisma.actuator.findUnique({
+      where: { id: actuatorId },
+      include: {
+        device: {
+          include: { farm: true },
+        },
+      },
+    });
+
+    if (!actuator) {
+      throw { status: 404, message: "Actuator not found" };
+    }
+
+    // Verify ownership
+    if (actuator.device.farm.userId !== userId) {
+      throw { status: 403, message: "Access denied" };
+    }
+
+    // Delete actuator
+    await prisma.actuator.delete({
+      where: { id: actuatorId },
+    });
+
+    return { message: "Actuator deleted successfully" };
   }
 }
 

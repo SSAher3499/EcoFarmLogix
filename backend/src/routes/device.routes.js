@@ -15,6 +15,12 @@ router.get('/mac/:macAddress', deviceController.getDeviceByMac);
 // All routes require authentication
 router.use(authenticate);
 
+// Sensor delete route
+router.delete('/sensors/:sensorId', deviceController.deleteSensor);
+
+// Actuator delete route  
+router.delete('/actuators/:actuatorId', deviceController.deleteActuator);
+
 // Device routes
 router.get('/:deviceId', deviceController.getDevice);
 router.put('/:deviceId', validate(updateDeviceSchema), deviceController.updateDevice);

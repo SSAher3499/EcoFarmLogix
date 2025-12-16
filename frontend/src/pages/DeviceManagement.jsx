@@ -165,6 +165,18 @@ export default function DeviceManagement() {
     }
   };
 
+  const handleDeleteSensor = async (sensorId, sensorName) => {
+    if (!confirm(`Delete sensor "${sensorName}"? This cannot be undone.`)) return;
+
+    try {
+      await deviceService.deleteSensor(sensorId);
+      toast.success('Sensor deleted');
+      loadDevices();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to delete sensor');
+    }
+  };
+
   // Actuator handlers
   const openActuatorModal = (device) => {
     setSelectedDevice(device);
@@ -190,6 +202,18 @@ export default function DeviceManagement() {
       loadDevices();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to add actuator');
+    }
+  };
+
+  const handleDeleteActuator = async (actuatorId, actuatorName) => {
+    if (!confirm(`Delete actuator "${actuatorName}"? This cannot be undone.`)) return;
+
+    try {
+      await deviceService.deleteActuator(actuatorId);
+      toast.success('Actuator deleted');
+      loadDevices();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to delete actuator');
     }
   };
 
@@ -295,15 +319,22 @@ export default function DeviceManagement() {
                   {device.sensors?.length > 0 ? (
                     <div className="space-y-2">
                       {device.sensors.map((sensor) => (
-                        <div key={sensor.id} className="flex items-center justify-between p-2 bg-blue-50 rounded-lg">
-                          <div>
+                        <div key={sensor.id} className="flex items-center justify-between p-2 bg-blue-50 rounded-lg group">
+                          <div className="flex-1">
                             <p className="text-sm font-medium text-gray-800">{sensor.sensorName}</p>
                             <p className="text-xs text-gray-500">{sensor.sensorType} • {sensor.unit}</p>
                           </div>
-                          <div className="text-right">
+                          <div className="flex items-center gap-2">
                             <p className="text-lg font-bold text-blue-600">
                               {sensor.lastReading !== null ? `${sensor.lastReading}${sensor.unit}` : '--'}
                             </p>
+                            <button
+                              onClick={() => handleDeleteSensor(sensor.id, sensor.sensorName)}
+                              className="p-1.5 text-red-500 hover:bg-red-100 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                              title="Delete sensor"
+                            >
+                              <FiTrash2 size={14} />
+                            </button>
                           </div>
                         </div>
                       ))}
@@ -322,20 +353,29 @@ export default function DeviceManagement() {
                   {device.actuators?.length > 0 ? (
                     <div className="space-y-2">
                       {device.actuators.map((actuator) => (
-                        <div key={actuator.id} className="flex items-center justify-between p-2 bg-purple-50 rounded-lg">
-                          <div>
+                        <div key={actuator.id} className="flex items-center justify-between p-2 bg-purple-50 rounded-lg group">
+                          <div className="flex-1">
                             <p className="text-sm font-medium text-gray-800">{actuator.actuatorName}</p>
                             <p className="text-xs text-gray-500">
                               {actuator.actuatorType} {actuator.gpioPin ? `• GPIO ${actuator.gpioPin}` : ''}
                             </p>
                           </div>
-                          <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                            actuator.currentState === 'ON' 
-                              ? 'bg-green-100 text-green-700' 
-                              : 'bg-gray-100 text-gray-600'
-                          }`}>
-                            {actuator.currentState}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                              actuator.currentState === 'ON' 
+                                ? 'bg-green-100 text-green-700' 
+                                : 'bg-gray-100 text-gray-600'
+                            }`}>
+                              {actuator.currentState}
+                            </span>
+                            <button
+                              onClick={() => handleDeleteActuator(actuator.id, actuator.actuatorName)}
+                              className="p-1.5 text-red-500 hover:bg-red-100 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                              title="Delete actuator"
+                            >
+                              <FiTrash2 size={14} />
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>

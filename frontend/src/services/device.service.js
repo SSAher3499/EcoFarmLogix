@@ -1,4 +1,4 @@
-import api from './api';
+import api from "./api";
 
 const deviceService = {
   // Get all devices for a farm
@@ -39,9 +39,24 @@ const deviceService = {
 
   // Add actuator to device
   addActuator: async (deviceId, actuatorData) => {
-    const response = await api.post(`/devices/${deviceId}/actuators`, actuatorData);
+    const response = await api.post(
+      `/devices/${deviceId}/actuators`,
+      actuatorData
+    );
     return response.data;
-  }
+  },
+
+  // Delete sensor
+  async deleteSensor(sensorId) {
+    const response = await api.delete(`/sensors/${sensorId}`);
+    return response.data;
+  },
+
+  // Delete actuator
+  async deleteActuator(actuatorId) {
+    const response = await api.delete(`/actuators/${actuatorId}`);
+    return response.data;
+  },
 };
 
 export default deviceService;

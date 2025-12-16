@@ -258,6 +258,46 @@ class DeviceController {
       next(error);
     }
   }
+
+  /**
+   * DELETE /api/v1/sensors/:sensorId
+   * Delete a sensor
+   */
+  async deleteSensor(req, res, next) {
+    try {
+      const result = await deviceService.deleteSensor(
+        req.params.sensorId,
+        req.user.userId
+      );
+
+      res.status(200).json({
+        status: "success",
+        ...result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * DELETE /api/v1/actuators/:actuatorId
+   * Delete an actuator
+   */
+  async deleteActuator(req, res, next) {
+    try {
+      const result = await deviceService.deleteActuator(
+        req.params.actuatorId,
+        req.user.userId
+      );
+
+      res.status(200).json({
+        status: "success",
+        ...result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new DeviceController();
