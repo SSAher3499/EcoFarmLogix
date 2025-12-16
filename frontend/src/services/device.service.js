@@ -47,16 +47,16 @@ const deviceService = {
   },
 
   // Delete sensor
-  async deleteSensor(sensorId) {
-    const response = await api.delete(`/sensors/${sensorId}`);
-    return response.data;
-  },
+deleteSensor: async (sensorId) => {
+  const response = await api.delete(`/devices/sensors/${sensorId}`);
+  return response.data;
+},
 
-  // Delete actuator
-  async deleteActuator(actuatorId) {
-    const response = await api.delete(`/actuators/${actuatorId}`);
-    return response.data;
-  },
+// Delete actuator
+deleteActuator: async (actuatorId) => {
+  const response = await api.delete(`/devices/actuators/${actuatorId}`);
+  return response.data;
+}
 };
 
 export default deviceService;
