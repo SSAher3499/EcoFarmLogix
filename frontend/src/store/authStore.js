@@ -1,7 +1,8 @@
 import { create } from 'zustand';
 import { authService } from '../services/auth.service';
+import { hasPermission as checkPermission, isSuperAdmin as checkSuperAdmin } from '../utils/permissions';
 
-export const useAuthStore = create((set) => ({
+export const useAuthStore = create((set, get) => ({
   user: null,
   isAuthenticated: false,
   isLoading: true,
@@ -40,4 +41,46 @@ export const useAuthStore = create((set) => ({
       set({ user: null, isAuthenticated: false, isLoading: false });
     }
   },
+
+  // Permission helpers
+  hasPermission: (permission) => {
+    const user = get().user;
+    if (!user) return false;
+    return checkPermission(user.role, permission);
+  },
+
+  isSuperAdmin: () => {
+    const user = get().user;
+    return checkSuperAdmin(user);
+  },
+
+  canControlActuators: () => {
+    const user = get().user;
+    if (!user) return false;
+    return checkPermission(user.role, 'controlActuators');
+  },
+
+  canManageDevices: () => {
+    const user = get().user;
+    if (!user) return false;
+    return checkPermission(user.role, 'viewDeviceManagement');
+  },
+
+  canViewAutomation: () => {
+    const user = get().user;
+    if (!user) return false;
+    return checkPermission(user.role, 'viewAutomation');
+  },
+
+  canViewTeam: () => {
+    const user = get().user;
+    if (!user) return false;
+    return checkPermission(user.role, 'viewTeam');
+  },
+
+  canExportData: () => {
+    const user = get().user;
+    if (!user) return false;
+    return checkPermission(user.role, 'exportData');
+  }
 }));

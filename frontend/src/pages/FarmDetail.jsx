@@ -3,7 +3,9 @@ import { useParams, Link } from "react-router-dom";
 import { farmService } from "../services/farm.service";
 import WeatherWidget from "../components/weather/WeatherWidget";
 import { socketService } from "../services/socket.service";
-import { FiSettings } from "react-icons/fi";
+import { useAuthStore } from "../store/authStore";
+import { getRoleDisplayName, getRoleBadgeColor } from "../utils/permissions";
+import { FiSettings, FiUsers } from "react-icons/fi";
 import { FiZap } from "react-icons/fi";
 import {
   FiThermometer,
@@ -39,6 +41,9 @@ export default function FarmDetail() {
   const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
   const [controlLoading, setControlLoading] = useState({});
+
+  // Get user and permissions from auth store
+  const { user, canControlActuators, canManageDevices, canViewAutomation, canViewTeam, canExportData } = useAuthStore();
 
   const loadDashboard = useCallback(async () => {
     setLoading(true);
@@ -149,6 +154,12 @@ export default function FarmDetail() {
   }, [farmId, loadDashboard]);
 
   const handleActuatorControl = async (actuatorId, currentState) => {
+    // Check permission first
+    if (!canControlActuators()) {
+      toast.error("You don't have permission to control actuators");
+      return;
+    }
+
     const newState = currentState === "ON" ? "OFF" : "ON";
     setControlLoading((prev) => ({ ...prev, [actuatorId]: true }));
     try {
@@ -189,20 +200,35 @@ export default function FarmDetail() {
     return <div className="text-center text-gray-500">Farm not found</div>;
   }
 
+  // Get user's role for this farm
+  const farmUserRole = dashboard.farm?.userRole || user?.role;
+
   return (
     <div>
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">
-            {dashboard.farm?.name}
-          </h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold text-gray-800">
+              {dashboard.farm?.name}
+            </h1>
+            {/* Role Badge */}
+            <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getRoleBadgeColor(farmUserRole)}`}>
+              {getRoleDisplayName(farmUserRole)}
+            </span>
+          </div>
           <p className="text-gray-500">
             {dashboard.farm?.location || dashboard.farm?.farmType}
+            {dashboard.farm?.owner && user?.role === 'SUPER_ADMIN' && (
+              <span className="ml-2 text-sm">
+                • Owner: {dashboard.farm.owner.fullName}
+              </span>
+            )}
           </p>
         </div>
 
         <div className="flex items-center gap-3">
+          {/* History - visible to all except VIEWER if they can't export */}
           <Link
             to={`/farms/${farmId}/history`}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
@@ -210,20 +236,40 @@ export default function FarmDetail() {
             <ChartBarIcon className="w-5 h-5" />
             View History
           </Link>
-          <Link
-            to={`/farms/${farmId}/automation`}
-            className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
-          >
-            <FiZap className="w-5 h-5" />
-            Automation
-          </Link>
-          <Link
-            to={`/farms/${farmId}/devices`}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
-          >
-            <FiSettings className="w-5 h-5" />
-            Devices
-          </Link>
+
+          {/* Automation - only for users with permission */}
+          {canViewAutomation() && (
+            <Link
+              to={`/farms/${farmId}/automation`}
+              className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+            >
+              <FiZap className="w-5 h-5" />
+              Automation
+            </Link>
+          )}
+
+          {/* Team - only for OWNER and above */}
+          {canViewTeam() && (
+            <Link
+              to={`/farms/${farmId}/team`}
+              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+            >
+              <FiUsers className="w-5 h-5" />
+              Team
+            </Link>
+          )}
+
+          {/* Devices - Super Admin only */}
+          {canManageDevices() && (
+            <Link
+              to={`/farms/${farmId}/devices`}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+            >
+              <FiSettings className="w-5 h-5" />
+              Devices
+            </Link>
+          )}
+
           <button
             type="button"
             onClick={loadDashboard}
@@ -236,7 +282,7 @@ export default function FarmDetail() {
       </div>
 
       {/* TOP STATS (full width) */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
         <div className="bg-white rounded-lg shadow p-4">
           <p className="text-sm text-gray-500">Total Devices</p>
           <p className="text-2xl font-bold">
@@ -261,6 +307,12 @@ export default function FarmDetail() {
             {dashboard.stats?.totalActuators ?? 0}
           </p>
         </div>
+        <div className="bg-white rounded-lg shadow p-4">
+          <p className="text-sm text-gray-500">Team Members</p>
+          <p className="text-2xl font-bold">
+            {dashboard.stats?.teamMembers ?? 0}
+          </p>
+        </div>
       </div>
 
       {/* MAIN GRID: left = content, right = weather sidebar */}
@@ -276,6 +328,13 @@ export default function FarmDetail() {
             {allSensors.length === 0 ? (
               <div className="bg-white rounded-lg shadow p-6 text-center text-gray-500">
                 No sensors configured
+                {canManageDevices() && (
+                  <div className="mt-2">
+                    <Link to={`/farms/${farmId}/devices`} className="text-blue-600 hover:underline">
+                      Add sensors →
+                    </Link>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -333,11 +392,23 @@ export default function FarmDetail() {
           <div className="mb-6">
             <h2 className="text-lg font-semibold text-gray-800 mb-4">
               ⚡ Actuator Controls
+              {!canControlActuators() && (
+                <span className="ml-2 text-sm font-normal text-gray-500">
+                  (View only)
+                </span>
+              )}
             </h2>
 
             {allActuators.length === 0 ? (
               <div className="bg-white rounded-lg shadow p-6 text-center text-gray-500">
                 No actuators configured
+                {canManageDevices() && (
+                  <div className="mt-2">
+                    <Link to={`/farms/${farmId}/devices`} className="text-blue-600 hover:underline">
+                      Add actuators →
+                    </Link>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -364,32 +435,44 @@ export default function FarmDetail() {
                       />
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() =>
-                        handleActuatorControl(
-                          actuator.id,
-                          actuator.currentState
-                        )
-                      }
-                      disabled={!!controlLoading[actuator.id]}
-                      className={`
-                        w-full py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors
-                        ${
-                          actuator.currentState === "ON"
-                            ? "bg-red-100 text-red-700 hover:bg-red-200"
-                            : "bg-green-100 text-green-700 hover:bg-green-200"
+                    {canControlActuators() ? (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleActuatorControl(
+                            actuator.id,
+                            actuator.currentState
+                          )
                         }
-                        disabled:opacity-50
-                      `}
-                    >
-                      {controlLoading[actuator.id] ? (
-                        <FiRefreshCw className="animate-spin" size={18} />
-                      ) : (
-                        <FiPower size={18} />
-                      )}
-                      {actuator.currentState === "ON" ? "Turn OFF" : "Turn ON"}
-                    </button>
+                        disabled={!!controlLoading[actuator.id]}
+                        className={`
+                          w-full py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors
+                          ${
+                            actuator.currentState === "ON"
+                              ? "bg-red-100 text-red-700 hover:bg-red-200"
+                              : "bg-green-100 text-green-700 hover:bg-green-200"
+                          }
+                          disabled:opacity-50
+                        `}
+                      >
+                        {controlLoading[actuator.id] ? (
+                          <FiRefreshCw className="animate-spin" size={18} />
+                        ) : (
+                          <FiPower size={18} />
+                        )}
+                        {actuator.currentState === "ON" ? "Turn OFF" : "Turn ON"}
+                      </button>
+                    ) : (
+                      <div className={`
+                        w-full py-2 px-4 rounded-lg text-center font-medium
+                        ${actuator.currentState === "ON" 
+                          ? "bg-green-100 text-green-700" 
+                          : "bg-gray-100 text-gray-600"
+                        }
+                      `}>
+                        {actuator.currentState}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
