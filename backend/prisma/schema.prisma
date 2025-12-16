@@ -20,14 +20,18 @@ model User {
   passwordHash  String    @map("password_hash")
   fullName      String    @map("full_name")
   phone         String?
-  role          UserRole  @default(OWNER)
+  role          UserRole  @default(FARM_OWNER)
   isActive      Boolean   @default(true) @map("is_active")
   lastLoginAt   DateTime? @map("last_login_at")
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
+  createdById   String?   @map("created_by_id")
 
   // Relations
-  farms         Farm[]
+  createdBy     User?     @relation("UserCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  createdUsers  User[]    @relation("UserCreatedBy")
+  ownedFarms    Farm[]    @relation("FarmOwner")
+  farmAccess    FarmUser[]
   actionLogs    ActionLog[]
   refreshTokens RefreshToken[]
 
@@ -48,10 +52,41 @@ model RefreshToken {
 }
 
 enum UserRole {
+  SUPER_ADMIN
+  FARM_OWNER
+  MANAGER
+  OPERATOR
+  VIEWER
+}
+
+// ==========================================
+// FARM USER ACCESS (Many-to-Many)
+// ==========================================
+
+model FarmUser {
+  id          String       @id @default(uuid())
+  farmId      String       @map("farm_id")
+  userId      String       @map("user_id")
+  role        FarmUserRole @default(VIEWER)
+  isActive    Boolean      @default(true) @map("is_active")
+  invitedById String?      @map("invited_by_id")
+  invitedAt   DateTime     @default(now()) @map("invited_at")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  // Relations
+  farm      Farm  @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  user      User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([farmId, userId])
+  @@map("farm_users")
+}
+
+enum FarmUserRole {
   OWNER
   MANAGER
+  OPERATOR
   VIEWER
-  ADMIN
 }
 
 // ==========================================
@@ -73,7 +108,8 @@ model Farm {
   updatedAt       DateTime  @updatedAt @map("updated_at")
 
   // Relations
-  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  owner           User              @relation("FarmOwner", fields: [userId], references: [id], onDelete: Cascade)
+  farmUsers       FarmUser[]
   devices         Device[]
   alertRules      AlertRule[]
   alerts          Alert[]
@@ -324,4 +360,5 @@ enum ActionSource {
   AUTOMATION
   SCHEDULE
   SYSTEM
+  DEVICE
 }

@@ -157,6 +157,9 @@ class MQTTService {
 
       // Broadcast to WebSocket clients
       if (sensorUpdates.length > 0) {
+        console.log(
+          `📡 Broadcasting ${sensorUpdates.length} sensor updates to farm: ${device.farmId}`
+        );
         websocketService.broadcastSensorData(device.farmId, {
           deviceId: device.id,
           deviceMac: device.macAddress,
