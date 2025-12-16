@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { authenticate } = require('../middleware/auth.middleware');
+const { authenticate, superAdminOnly } = require('../middleware/auth.middleware');
 const { getLatestReadings, querySensorData } = require('../config/influxdb');
 const { prisma } = require('../config/database');
 
@@ -32,11 +32,27 @@ router.get('/:sensorId/readings', async (req, res, next) => {
       });
     }
 
-    if (sensor.device.farm.userId !== req.user.userId) {
-      return res.status(403).json({
-        status: 'error',
-        message: 'Access denied'
-      });
+    // Super Admin can access any sensor
+    if (req.user.role !== 'SUPER_ADMIN') {
+      // Check if user is farm owner
+      if (sensor.device.farm.userId !== req.user.userId) {
+        // Check if user has farm access via FarmUser
+        const farmUser = await prisma.farmUser.findUnique({
+          where: {
+            farmId_userId: { 
+              farmId: sensor.device.farm.id, 
+              userId: req.user.userId 
+            }
+          }
+        });
+
+        if (!farmUser || !farmUser.isActive) {
+          return res.status(403).json({
+            status: 'error',
+            message: 'Access denied'
+          });
+        }
+      }
     }
 
     // Query InfluxDB
@@ -73,16 +89,28 @@ router.get('/farm/:farmId/latest', async (req, res, next) => {
   try {
     const { farmId } = req.params;
 
-    // Verify farm access
-    const farm = await prisma.farm.findFirst({
-      where: { id: farmId, userId: req.user.userId }
-    });
-
-    if (!farm) {
-      return res.status(404).json({
-        status: 'error',
-        message: 'Farm not found'
+    // Super Admin can access any farm
+    if (req.user.role !== 'SUPER_ADMIN') {
+      // Verify farm access
+      const farm = await prisma.farm.findFirst({
+        where: { id: farmId, userId: req.user.userId }
       });
+
+      if (!farm) {
+        // Check FarmUser access
+        const farmUser = await prisma.farmUser.findUnique({
+          where: {
+            farmId_userId: { farmId, userId: req.user.userId }
+          }
+        });
+
+        if (!farmUser || !farmUser.isActive) {
+          return res.status(404).json({
+            status: 'error',
+            message: 'Farm not found'
+          });
+        }
+      }
     }
 
     // Get latest readings from InfluxDB
@@ -99,20 +127,14 @@ router.get('/farm/:farmId/latest', async (req, res, next) => {
 
 /**
  * DELETE /api/v1/sensors/:sensorId
- * Delete a sensor
+ * Delete a sensor - Super Admin only
  */
-router.delete('/:sensorId', async (req, res, next) => {
+router.delete('/:sensorId', superAdminOnly, async (req, res, next) => {
   try {
     const { sensorId } = req.params;
 
-    // Find sensor with device info
     const sensor = await prisma.sensor.findUnique({
-      where: { id: sensorId },
-      include: {
-        device: {
-          include: { farm: true }
-        }
-      }
+      where: { id: sensorId }
     });
 
     if (!sensor) {
@@ -122,15 +144,6 @@ router.delete('/:sensorId', async (req, res, next) => {
       });
     }
 
-    // Verify ownership
-    if (sensor.device.farm.userId !== req.user.userId) {
-      return res.status(403).json({
-        status: 'error',
-        message: 'Access denied'
-      });
-    }
-
-    // Delete sensor
     await prisma.sensor.delete({
       where: { id: sensorId }
     });

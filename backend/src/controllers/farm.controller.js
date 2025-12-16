@@ -4,10 +4,14 @@ class FarmController {
   
   /**
    * POST /api/v1/farms
+   * Super Admin creates farm and assigns to a user
    */
   async createFarm(req, res, next) {
     try {
-      const farm = await farmService.createFarm(req.user.userId, req.body);
+      // Super Admin can specify userId, otherwise use their own
+      const ownerId = req.body.userId || req.user.userId;
+      
+      const farm = await farmService.createFarm(ownerId, req.body);
 
       res.status(201).json({
         status: 'success',
@@ -21,10 +25,22 @@ class FarmController {
 
   /**
    * GET /api/v1/farms
+   * Super Admin sees all farms, others see their own + assigned farms
    */
   async getFarms(req, res, next) {
     try {
-      const farms = await farmService.getUserFarms(req.user.userId);
+      const userRole = req.user.role;
+      const userId = req.user.userId;
+      
+      let farms;
+      
+      if (userRole === 'SUPER_ADMIN') {
+        // Super Admin sees all farms
+        farms = await farmService.getAllFarms();
+      } else {
+        // Others see owned + assigned farms
+        farms = await farmService.getUserFarms(userId);
+      }
 
       res.status(200).json({
         status: 'success',
@@ -43,7 +59,10 @@ class FarmController {
    */
   async getFarm(req, res, next) {
     try {
-      const farm = await farmService.getFarmById(req.params.farmId, req.user.userId);
+      // If Super Admin, don't check ownership
+      const userId = req.user.role === 'SUPER_ADMIN' ? null : req.user.userId;
+      
+      const farm = await farmService.getFarmById(req.params.farmId, userId);
 
       res.status(200).json({
         status: 'success',
@@ -59,9 +78,12 @@ class FarmController {
    */
   async updateFarm(req, res, next) {
     try {
+      // If Super Admin, don't check ownership
+      const userId = req.user.role === 'SUPER_ADMIN' ? null : req.user.userId;
+      
       const farm = await farmService.updateFarm(
         req.params.farmId, 
-        req.user.userId, 
+        userId, 
         req.body
       );
 
@@ -77,10 +99,11 @@ class FarmController {
 
   /**
    * DELETE /api/v1/farms/:farmId
+   * Super Admin only
    */
   async deleteFarm(req, res, next) {
     try {
-      const result = await farmService.deleteFarm(req.params.farmId, req.user.userId);
+      const result = await farmService.deleteFarm(req.params.farmId, null);
 
       res.status(200).json({
         status: 'success',
@@ -96,9 +119,12 @@ class FarmController {
    */
   async getDashboard(req, res, next) {
     try {
+      // If Super Admin, don't check ownership
+      const userId = req.user.role === 'SUPER_ADMIN' ? null : req.user.userId;
+      
       const dashboard = await farmService.getFarmDashboard(
         req.params.farmId, 
-        req.user.userId
+        userId
       );
 
       res.status(200).json({

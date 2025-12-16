@@ -10,16 +10,20 @@ const sensorRoutes = require('./sensor.routes');
 const historyRoutes = require('./history.routes');
 const weatherRoutes = require('./weather.routes');
 const automationRoutes = require('./automation.routes');
+const userRoutes = require('./user.routes');
+const teamRoutes = require('./team.routes');
 
 // Mount routes
 router.use('/auth', authRoutes);
-router.use('/weather', weatherRoutes);  // Move weather BEFORE history
+router.use('/users', userRoutes);
+router.use('/weather', weatherRoutes);
 router.use('/farms', farmRoutes);
 router.use('/devices', deviceRoutes);
 router.use('/actuators', actuatorRoutes);
 router.use('/sensors', sensorRoutes);
-router.use('/', historyRoutes);  // Keep history at the end
+router.use('/', historyRoutes);
 router.use('/', automationRoutes);
+router.use('/', teamRoutes);
 
 // API info route
 router.get('/', (req, res) => {
@@ -34,37 +38,47 @@ router.get('/', (req, res) => {
         logout: 'POST /api/v1/auth/logout',
         me: 'GET /api/v1/auth/me'
       },
+      users: {
+        list: 'GET /api/v1/users (Super Admin)',
+        get: 'GET /api/v1/users/:userId (Super Admin)',
+        create: 'POST /api/v1/users (Super Admin)',
+        update: 'PUT /api/v1/users/:userId (Super Admin)',
+        resetPassword: 'PUT /api/v1/users/:userId/reset-password (Super Admin)',
+        delete: 'DELETE /api/v1/users/:userId (Super Admin)'
+      },
       farms: {
-        create: 'POST /api/v1/farms',
+        create: 'POST /api/v1/farms (Super Admin)',
         list: 'GET /api/v1/farms',
         get: 'GET /api/v1/farms/:farmId',
         update: 'PUT /api/v1/farms/:farmId',
-        delete: 'DELETE /api/v1/farms/:farmId',
+        delete: 'DELETE /api/v1/farms/:farmId (Super Admin)',
         dashboard: 'GET /api/v1/farms/:farmId/dashboard',
-        history: 'GET /api/v1/farms/:farmId/history',
-        exportHistory: 'GET /api/v1/farms/:farmId/history/export'
+        team: 'GET /api/v1/farms/:farmId/team',
+        addTeamMember: 'POST /api/v1/farms/:farmId/team',
+        updateTeamMember: 'PUT /api/v1/farms/:farmId/team/:memberId',
+        removeTeamMember: 'DELETE /api/v1/farms/:farmId/team/:memberId'
       },
       devices: {
-        register: 'POST /api/v1/farms/:farmId/devices',
+        register: 'POST /api/v1/farms/:farmId/devices (Super Admin)',
         listByFarm: 'GET /api/v1/farms/:farmId/devices',
         get: 'GET /api/v1/devices/:deviceId',
-        update: 'PUT /api/v1/devices/:deviceId',
-        delete: 'DELETE /api/v1/devices/:deviceId',
-        addSensor: 'POST /api/v1/devices/:deviceId/sensors',
-        addActuator: 'POST /api/v1/devices/:deviceId/actuators'
+        update: 'PUT /api/v1/devices/:deviceId (Super Admin)',
+        delete: 'DELETE /api/v1/devices/:deviceId (Super Admin)',
+        addSensor: 'POST /api/v1/devices/:deviceId/sensors (Super Admin)',
+        addActuator: 'POST /api/v1/devices/:deviceId/actuators (Super Admin)'
       },
       sensors: {
         readings: 'GET /api/v1/sensors/:sensorId/readings',
-        history: 'GET /api/v1/sensors/:sensorId/history',
-        latestByFarm: 'GET /api/v1/sensors/farm/:farmId/latest'
+        delete: 'DELETE /api/v1/sensors/:sensorId (Super Admin)'
       },
       actuators: {
-        control: 'PUT /api/v1/actuators/:actuatorId/control'
+        control: 'PUT /api/v1/actuators/:actuatorId/control',
+        delete: 'DELETE /api/v1/actuators/:actuatorId (Super Admin)'
       },
       weather: {
         byCoords: 'GET /api/v1/weather?lat=XX&lon=YY',
         byCity: 'GET /api/v1/weather/city/:cityName',
-        byFarm: 'GET /api/v1/farms/:farmId/weather (auth required)'
+        byFarm: 'GET /api/v1/farms/:farmId/weather'
       }
     }
   });

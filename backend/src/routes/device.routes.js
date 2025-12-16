@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const deviceController = require('../controllers/device.controller');
-const { authenticate } = require('../middleware/auth.middleware');
+const { authenticate, superAdminOnly, requireFarmAccess } = require('../middleware/auth.middleware');
 const { validate } = require('../validators/auth.validator');
 const { 
   updateDeviceSchema, 
@@ -12,24 +12,24 @@ const {
 // Public route for edge devices (no auth required)
 router.get('/mac/:macAddress', deviceController.getDeviceByMac);
 
-// All routes require authentication
+// All other routes require authentication
 router.use(authenticate);
 
-// Sensor delete route
-router.delete('/sensors/:sensorId', deviceController.deleteSensor);
+// Sensor delete route - Super Admin only
+router.delete('/sensors/:sensorId', superAdminOnly, deviceController.deleteSensor);
 
-// Actuator delete route  
-router.delete('/actuators/:actuatorId', deviceController.deleteActuator);
+// Actuator delete route - Super Admin only
+router.delete('/actuators/:actuatorId', superAdminOnly, deviceController.deleteActuator);
 
 // Device routes
 router.get('/:deviceId', deviceController.getDevice);
-router.put('/:deviceId', validate(updateDeviceSchema), deviceController.updateDevice);
-router.delete('/:deviceId', deviceController.deleteDevice);
+router.put('/:deviceId', superAdminOnly, validate(updateDeviceSchema), deviceController.updateDevice);
+router.delete('/:deviceId', superAdminOnly, deviceController.deleteDevice);
 
-// Sensor routes
-router.post('/:deviceId/sensors', validate(createSensorSchema), deviceController.addSensor);
+// Sensor routes - Super Admin only
+router.post('/:deviceId/sensors', superAdminOnly, validate(createSensorSchema), deviceController.addSensor);
 
-// Actuator routes
-router.post('/:deviceId/actuators', validate(createActuatorSchema), deviceController.addActuator);
+// Actuator routes - Super Admin only
+router.post('/:deviceId/actuators', superAdminOnly, validate(createActuatorSchema), deviceController.addActuator);
 
 module.exports = router;
