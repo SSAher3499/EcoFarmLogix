@@ -3,12 +3,16 @@ const { prisma } = require("../config/database");
 class DeviceService {
   /**
    * Register a new device to a farm (by MAC address)
+   * userId = null for Super Admin
    */
   async registerDevice(farmId, userId, deviceData) {
-    // Verify farm belongs to user
-    const farm = await prisma.farm.findFirst({
-      where: { id: farmId, userId },
-    });
+    // Verify farm exists (and belongs to user if not Super Admin)
+    let farm;
+    if (userId === null) {
+      farm = await prisma.farm.findUnique({ where: { id: farmId } });
+    } else {
+      farm = await prisma.farm.findFirst({ where: { id: farmId, userId } });
+    }
 
     if (!farm) {
       throw { status: 404, message: "Farm not found" };
@@ -46,12 +50,16 @@ class DeviceService {
 
   /**
    * Get all devices for a farm
+   * userId = null for Super Admin
    */
   async getFarmDevices(farmId, userId) {
-    // Verify farm belongs to user
-    const farm = await prisma.farm.findFirst({
-      where: { id: farmId, userId },
-    });
+    // Verify farm exists (and belongs to user if not Super Admin)
+    let farm;
+    if (userId === null) {
+      farm = await prisma.farm.findUnique({ where: { id: farmId } });
+    } else {
+      farm = await prisma.farm.findFirst({ where: { id: farmId, userId } });
+    }
 
     if (!farm) {
       throw { status: 404, message: "Farm not found" };
@@ -71,6 +79,7 @@ class DeviceService {
 
   /**
    * Get device by ID
+   * userId = null for Super Admin
    */
   async getDeviceById(deviceId, userId) {
     const device = await prisma.device.findUnique({
@@ -86,8 +95,8 @@ class DeviceService {
       throw { status: 404, message: "Device not found" };
     }
 
-    // Verify ownership
-    if (device.farm.userId !== userId) {
+    // Verify ownership (skip for Super Admin)
+    if (userId !== null && device.farm.userId !== userId) {
       throw { status: 403, message: "Access denied" };
     }
 
@@ -139,6 +148,7 @@ class DeviceService {
 
   /**
    * Update device
+   * userId = null for Super Admin
    */
   async updateDevice(deviceId, userId, updateData) {
     const device = await this.getDeviceById(deviceId, userId);
@@ -176,6 +186,7 @@ class DeviceService {
 
   /**
    * Delete device
+   * userId = null for Super Admin
    */
   async deleteDevice(deviceId, userId) {
     await this.getDeviceById(deviceId, userId);
@@ -189,6 +200,7 @@ class DeviceService {
 
   /**
    * Add sensor to device
+   * userId = null for Super Admin
    */
   async addSensor(deviceId, userId, sensorData) {
     await this.getDeviceById(deviceId, userId);
@@ -211,6 +223,7 @@ class DeviceService {
 
   /**
    * Add actuator to device
+   * userId = null for Super Admin
    */
   async addActuator(deviceId, userId, actuatorData) {
     await this.getDeviceById(deviceId, userId);
@@ -245,6 +258,7 @@ class DeviceService {
 
   /**
    * Control actuator - sends MQTT command to Pi and broadcasts to website
+   * userId = null for Super Admin or system
    */
   async controlActuator(actuatorId, command, userId) {
     // Get actuator with device info
@@ -261,8 +275,8 @@ class DeviceService {
       throw { status: 404, message: "Actuator not found" };
     }
 
-    // Verify ownership
-    if (actuator.device.farm.userId !== userId) {
+    // Verify ownership (skip for Super Admin)
+    if (userId !== null && actuator.device.farm.userId !== userId) {
       throw { status: 403, message: "Access denied" };
     }
 
@@ -292,7 +306,6 @@ class DeviceService {
       );
     } catch (err) {
       console.error("❌ Failed to send MQTT command:", err.message);
-      // Continue anyway - state is updated in DB
     }
 
     // Log the action
@@ -306,7 +319,7 @@ class DeviceService {
           source: "MANUAL",
         },
       })
-      .catch(() => {}); // Ignore if table doesn't exist
+      .catch(() => {});
 
     // Broadcast to all website clients via WebSocket
     const websocketService = require("./websocket.service");
@@ -322,6 +335,7 @@ class DeviceService {
 
   /**
    * Update actuator state (legacy method)
+   * userId = null for Super Admin or system
    */
   async updateActuatorState(actuatorId, state, userId = null) {
     const actuator = await prisma.actuator.update({
@@ -352,8 +366,10 @@ class DeviceService {
 
     return actuator;
   }
+
   /**
    * Delete sensor
+   * userId = null for Super Admin
    */
   async deleteSensor(sensorId, userId) {
     // Find sensor with device info
@@ -370,8 +386,8 @@ class DeviceService {
       throw { status: 404, message: "Sensor not found" };
     }
 
-    // Verify ownership
-    if (sensor.device.farm.userId !== userId) {
+    // Verify ownership (skip for Super Admin)
+    if (userId !== null && sensor.device.farm.userId !== userId) {
       throw { status: 403, message: "Access denied" };
     }
 
@@ -385,6 +401,7 @@ class DeviceService {
 
   /**
    * Delete actuator
+   * userId = null for Super Admin
    */
   async deleteActuator(actuatorId, userId) {
     // Find actuator with device info
@@ -401,8 +418,8 @@ class DeviceService {
       throw { status: 404, message: "Actuator not found" };
     }
 
-    // Verify ownership
-    if (actuator.device.farm.userId !== userId) {
+    // Verify ownership (skip for Super Admin)
+    if (userId !== null && actuator.device.farm.userId !== userId) {
       throw { status: 403, message: "Access denied" };
     }
 

@@ -4,13 +4,16 @@ const mqttService = require("../mqtt/mqtt.service");
 class DeviceController {
   /**
    * POST /api/v1/farms/:farmId/devices
-   * Register new device by MAC address
+   * Register new device by MAC address (Super Admin only)
    */
   async registerDevice(req, res, next) {
     try {
+      // Super Admin doesn't need ownership check
+      const userId = req.user.role === 'SUPER_ADMIN' ? null : req.user.userId;
+      
       const device = await deviceService.registerDevice(
         req.params.farmId,
-        req.user.userId,
+        userId,
         req.body
       );
 
@@ -29,9 +32,12 @@ class DeviceController {
    */
   async getDevices(req, res, next) {
     try {
+      // Super Admin can view any farm's devices
+      const userId = req.user.role === 'SUPER_ADMIN' ? null : req.user.userId;
+      
       const devices = await deviceService.getFarmDevices(
         req.params.farmId,
-        req.user.userId
+        userId
       );
 
       res.status(200).json({
@@ -51,9 +57,11 @@ class DeviceController {
    */
   async getDevice(req, res, next) {
     try {
+      const userId = req.user.role === 'SUPER_ADMIN' ? null : req.user.userId;
+      
       const device = await deviceService.getDeviceById(
         req.params.deviceId,
-        req.user.userId
+        userId
       );
 
       res.status(200).json({
@@ -70,9 +78,11 @@ class DeviceController {
    */
   async updateDevice(req, res, next) {
     try {
+      const userId = req.user.role === 'SUPER_ADMIN' ? null : req.user.userId;
+      
       const device = await deviceService.updateDevice(
         req.params.deviceId,
-        req.user.userId,
+        userId,
         req.body
       );
 
@@ -91,9 +101,11 @@ class DeviceController {
    */
   async deleteDevice(req, res, next) {
     try {
+      const userId = req.user.role === 'SUPER_ADMIN' ? null : req.user.userId;
+      
       const result = await deviceService.deleteDevice(
         req.params.deviceId,
-        req.user.userId
+        userId
       );
 
       res.status(200).json({
@@ -107,13 +119,15 @@ class DeviceController {
 
   /**
    * POST /api/v1/devices/:deviceId/sensors
-   * Add sensor to device
+   * Add sensor to device (Super Admin only)
    */
   async addSensor(req, res, next) {
     try {
+      const userId = req.user.role === 'SUPER_ADMIN' ? null : req.user.userId;
+      
       const sensor = await deviceService.addSensor(
         req.params.deviceId,
-        req.user.userId,
+        userId,
         req.body
       );
 
@@ -129,13 +143,15 @@ class DeviceController {
 
   /**
    * POST /api/v1/devices/:deviceId/actuators
-   * Add actuator to device
+   * Add actuator to device (Super Admin only)
    */
   async addActuator(req, res, next) {
     try {
+      const userId = req.user.role === 'SUPER_ADMIN' ? null : req.user.userId;
+      
       const actuator = await deviceService.addActuator(
         req.params.deviceId,
-        req.user.userId,
+        userId,
         req.body
       );
 
@@ -190,11 +206,14 @@ class DeviceController {
         });
       }
 
+      // Super Admin can control any actuator
+      const userId = req.user.role === 'SUPER_ADMIN' ? null : req.user.userId;
+
       // Update state in database
       const actuator = await deviceService.updateActuatorState(
         req.params.actuatorId,
         state.toUpperCase(),
-        req.user.userId
+        userId
       );
 
       // Send MQTT command to physical device
@@ -234,40 +253,16 @@ class DeviceController {
   }
 
   /**
-   * GET /api/v1/devices/mac/:macAddress
-   * Public endpoint for edge devices to get their config
-   */
-  async getDeviceByMac(req, res, next) {
-    try {
-      const device = await deviceService.getDeviceByMacPublic(
-        req.params.macAddress
-      );
-
-      if (!device) {
-        return res.status(404).json({
-          status: "error",
-          message: "Device not found",
-        });
-      }
-
-      res.status(200).json({
-        status: "success",
-        data: { device },
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  /**
    * DELETE /api/v1/sensors/:sensorId
-   * Delete a sensor
+   * Delete a sensor (Super Admin only)
    */
   async deleteSensor(req, res, next) {
     try {
+      const userId = req.user.role === 'SUPER_ADMIN' ? null : req.user.userId;
+      
       const result = await deviceService.deleteSensor(
         req.params.sensorId,
-        req.user.userId
+        userId
       );
 
       res.status(200).json({
@@ -281,13 +276,15 @@ class DeviceController {
 
   /**
    * DELETE /api/v1/actuators/:actuatorId
-   * Delete an actuator
+   * Delete an actuator (Super Admin only)
    */
   async deleteActuator(req, res, next) {
     try {
+      const userId = req.user.role === 'SUPER_ADMIN' ? null : req.user.userId;
+      
       const result = await deviceService.deleteActuator(
         req.params.actuatorId,
-        req.user.userId
+        userId
       );
 
       res.status(200).json({
