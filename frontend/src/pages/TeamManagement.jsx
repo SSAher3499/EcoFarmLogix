@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { FiArrowLeft, FiPlus, FiTrash2, FiEdit2, FiUser, FiMail, FiPhone } from 'react-icons/fi';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { FiArrowLeft, FiPlus, FiTrash2, FiUser } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import teamService from '../services/team.service';
 import { useAuthStore } from '../store/authStore';
@@ -14,7 +14,8 @@ const TEAM_ROLES = [
 
 export default function TeamManagement() {
   const { farmId } = useParams();
-  const { user } = useAuthStore();
+  const navigate = useNavigate();
+  const { user, hasPermission } = useAuthStore();
   const [team, setTeam] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -26,9 +27,19 @@ export default function TeamManagement() {
     role: 'OPERATOR'
   });
 
+  // Permission checks
+  const canInviteUsers = hasPermission('inviteUsers');
+  const canViewTeam = hasPermission('viewTeam');
+
   useEffect(() => {
+    // Redirect if no permission
+    if (!canViewTeam) {
+      toast.error("You don't have permission to view the team");
+      navigate(`/farms/${farmId}`);
+      return;
+    }
     loadTeam();
-  }, [farmId]);
+  }, [farmId, canViewTeam, navigate]);
 
   const loadTeam = async () => {
     try {
@@ -44,6 +55,11 @@ export default function TeamManagement() {
   const handleAddMember = async (e) => {
     e.preventDefault();
     
+    if (!canInviteUsers) {
+      toast.error("You don't have permission to add team members");
+      return;
+    }
+
     if (!formData.email || !formData.role) {
       toast.error('Email and role are required');
       return;
@@ -61,6 +77,11 @@ export default function TeamManagement() {
   };
 
   const handleUpdateRole = async (memberId, newRole) => {
+    if (!canInviteUsers) {
+      toast.error("You don't have permission to update roles");
+      return;
+    }
+
     try {
       await teamService.updateTeamMember(farmId, memberId, newRole);
       toast.success('Role updated');
@@ -71,6 +92,11 @@ export default function TeamManagement() {
   };
 
   const handleRemoveMember = async (memberId, memberName) => {
+    if (!canInviteUsers) {
+      toast.error("You don't have permission to remove team members");
+      return;
+    }
+
     if (!confirm(`Remove ${memberName} from the team?`)) return;
 
     try {
@@ -103,13 +129,15 @@ export default function TeamManagement() {
             <p className="text-gray-500 text-sm">{team?.farm?.name}</p>
           </div>
         </div>
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
-        >
-          <FiPlus size={18} />
-          Add Team Member
-        </button>
+        {canInviteUsers && (
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+          >
+            <FiPlus size={18} />
+            Add Team Member
+          </button>
+        )}
       </div>
 
       {/* Owner Card */}
@@ -141,7 +169,9 @@ export default function TeamManagement() {
           <div className="p-8 text-center text-gray-500">
             <FiUser size={48} className="mx-auto mb-4 opacity-50" />
             <p>No team members yet</p>
-            <p className="text-sm">Add team members to give them access to this farm</p>
+            {canInviteUsers && (
+              <p className="text-sm">Add team members to give them access to this farm</p>
+            )}
           </div>
         ) : (
           <div className="divide-y">
@@ -154,21 +184,29 @@ export default function TeamManagement() {
                   <p className="font-medium text-gray-800">{member.fullName}</p>
                   <p className="text-sm text-gray-500">{member.email}</p>
                 </div>
-                <select
-                  value={member.role}
-                  onChange={(e) => handleUpdateRole(member.id, e.target.value)}
-                  className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500"
-                >
-                  {TEAM_ROLES.map((role) => (
-                    <option key={role.value} value={role.value}>{role.label}</option>
-                  ))}
-                </select>
-                <button
-                  onClick={() => handleRemoveMember(member.id, member.fullName)}
-                  className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
-                >
-                  <FiTrash2 size={18} />
-                </button>
+                {canInviteUsers ? (
+                  <>
+                    <select
+                      value={member.role}
+                      onChange={(e) => handleUpdateRole(member.id, e.target.value)}
+                      className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500"
+                    >
+                      {TEAM_ROLES.map((role) => (
+                        <option key={role.value} value={role.value}>{role.label}</option>
+                      ))}
+                    </select>
+                    <button
+                      onClick={() => handleRemoveMember(member.id, member.fullName)}
+                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                    >
+                      <FiTrash2 size={18} />
+                    </button>
+                  </>
+                ) : (
+                  <span className={`px-3 py-1 text-sm font-semibold rounded-full ${getRoleBadgeColor(member.role)}`}>
+                    {getRoleDisplayName(member.role)}
+                  </span>
+                )}
               </div>
             ))}
           </div>
@@ -191,7 +229,7 @@ export default function TeamManagement() {
       </div>
 
       {/* Add Member Modal */}
-      {showAddModal && (
+      {showAddModal && canInviteUsers && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
             <div className="p-6">

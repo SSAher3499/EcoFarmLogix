@@ -2,16 +2,74 @@ const express = require('express');
 const router = express.Router();
 const { prisma } = require('../config/database');
 const { hashPassword } = require('../utils/password');
-const { authenticate, requireFarmAccess } = require('../middleware/auth.middleware');
+const { authenticate } = require('../middleware/auth.middleware');
 
 // All routes require authentication
 router.use(authenticate);
 
 /**
+ * Middleware to check team management permissions
+ */
+const checkTeamPermission = (action) => {
+  return async (req, res, next) => {
+    try {
+      const { farmId } = req.params;
+
+      // Super Admin can do anything
+      if (req.user.role === 'SUPER_ADMIN') {
+        return next();
+      }
+
+      // Check if user is farm owner
+      const farm = await prisma.farm.findFirst({
+        where: { id: farmId, userId: req.user.userId }
+      });
+
+      if (farm) {
+        // Farm owner can do everything
+        return next();
+      }
+
+      // Check FarmUser access
+      const farmUser = await prisma.farmUser.findUnique({
+        where: {
+          farmId_userId: { farmId, userId: req.user.userId }
+        }
+      });
+
+      if (!farmUser || !farmUser.isActive) {
+        return res.status(403).json({ status: 'error', message: 'Access denied' });
+      }
+
+      // Check permissions based on role and action
+      const permissions = {
+        MANAGER: ['view'],
+        OPERATOR: [],
+        VIEWER: []
+      };
+
+      const allowedActions = permissions[farmUser.role] || [];
+
+      if (!allowedActions.includes(action)) {
+        return res.status(403).json({ 
+          status: 'error', 
+          message: `You don't have permission to ${action} team members` 
+        });
+      }
+
+      next();
+    } catch (error) {
+      console.error('Team permission check error:', error);
+      return res.status(500).json({ status: 'error', message: 'Permission check failed' });
+    }
+  };
+};
+
+/**
  * GET /api/v1/farms/:farmId/team
  * Get team members for a farm
  */
-router.get('/farms/:farmId/team', requireFarmAccess(), async (req, res, next) => {
+router.get('/farms/:farmId/team', checkTeamPermission('view'), async (req, res, next) => {
   try {
     const { farmId } = req.params;
 
@@ -31,6 +89,10 @@ router.get('/farms/:farmId/team', requireFarmAccess(), async (req, res, next) =>
         }
       }
     });
+
+    if (!farm) {
+      return res.status(404).json({ status: 'error', message: 'Farm not found' });
+    }
 
     // Get team members
     const teamMembers = await prisma.farmUser.findMany({
@@ -77,8 +139,9 @@ router.get('/farms/:farmId/team', requireFarmAccess(), async (req, res, next) =>
 /**
  * POST /api/v1/farms/:farmId/team
  * Add team member to farm (creates user if doesn't exist)
+ * Only SUPER_ADMIN and Farm OWNER can add members
  */
-router.post('/farms/:farmId/team', requireFarmAccess('OWNER'), async (req, res, next) => {
+router.post('/farms/:farmId/team', checkTeamPermission('invite'), async (req, res, next) => {
   try {
     const { farmId } = req.params;
     const { email, fullName, phone, role, password } = req.body;
@@ -122,7 +185,7 @@ router.post('/farms/:farmId/team', requireFarmAccess('OWNER'), async (req, res, 
           passwordHash,
           fullName,
           phone,
-          role: 'FARM_OWNER', // They own their account, access is via FarmUser
+          role: 'FARM_OWNER',
           createdById: req.user.userId
         }
       });
@@ -136,7 +199,6 @@ router.post('/farms/:farmId/team', requireFarmAccess('OWNER'), async (req, res, 
     });
 
     if (existingMember) {
-      // Reactivate if inactive
       if (!existingMember.isActive) {
         await prisma.farmUser.update({
           where: { id: existingMember.id },
@@ -189,8 +251,9 @@ router.post('/farms/:farmId/team', requireFarmAccess('OWNER'), async (req, res, 
 /**
  * PUT /api/v1/farms/:farmId/team/:memberId
  * Update team member role
+ * Only SUPER_ADMIN and Farm OWNER can update
  */
-router.put('/farms/:farmId/team/:memberId', requireFarmAccess('OWNER'), async (req, res, next) => {
+router.put('/farms/:farmId/team/:memberId', checkTeamPermission('invite'), async (req, res, next) => {
   try {
     const { memberId } = req.params;
     const { role } = req.body;
@@ -233,8 +296,9 @@ router.put('/farms/:farmId/team/:memberId', requireFarmAccess('OWNER'), async (r
 /**
  * DELETE /api/v1/farms/:farmId/team/:memberId
  * Remove team member from farm
+ * Only SUPER_ADMIN and Farm OWNER can remove
  */
-router.delete('/farms/:farmId/team/:memberId', requireFarmAccess('OWNER'), async (req, res, next) => {
+router.delete('/farms/:farmId/team/:memberId', checkTeamPermission('invite'), async (req, res, next) => {
   try {
     const { memberId } = req.params;
 
