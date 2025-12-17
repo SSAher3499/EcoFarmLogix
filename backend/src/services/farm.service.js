@@ -1,7 +1,6 @@
-const { prisma } = require('../config/database');
+const { prisma } = require("../config/database");
 
 class FarmService {
-  
   /**
    * Create a new farm
    */
@@ -14,8 +13,8 @@ class FarmService {
         latitude: farmData.latitude,
         longitude: farmData.longitude,
         areaSqft: farmData.areaSqft,
-        farmType: farmData.farmType || 'POLYHOUSE',
-        timezone: farmData.timezone || 'Asia/Kolkata'
+        farmType: farmData.farmType || "POLYHOUSE",
+        timezone: farmData.timezone || "Asia/Kolkata",
       },
       include: {
         devices: true,
@@ -23,10 +22,10 @@ class FarmService {
           select: {
             id: true,
             email: true,
-            fullName: true
-          }
-        }
-      }
+            fullName: true,
+          },
+        },
+      },
     });
 
     return farm;
@@ -37,8 +36,8 @@ class FarmService {
    */
   async getAllFarms() {
     const farms = await prisma.farm.findMany({
-      where: { 
-        isActive: true 
+      where: {
+        isActive: true,
       },
       include: {
         owner: {
@@ -46,8 +45,8 @@ class FarmService {
             id: true,
             email: true,
             fullName: true,
-            phone: true
-          }
+            phone: true,
+          },
         },
         devices: {
           select: {
@@ -56,18 +55,18 @@ class FarmService {
             deviceName: true,
             deviceType: true,
             isOnline: true,
-            lastSeenAt: true
-          }
+            lastSeenAt: true,
+          },
         },
         _count: {
           select: {
             devices: true,
             alerts: true,
-            farmUsers: true
-          }
-        }
+            farmUsers: true,
+          },
+        },
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: "desc" },
     });
 
     return farms;
@@ -79,17 +78,17 @@ class FarmService {
   async getUserFarms(userId) {
     // Get owned farms
     const ownedFarms = await prisma.farm.findMany({
-      where: { 
+      where: {
         userId,
-        isActive: true 
+        isActive: true,
       },
       include: {
         owner: {
           select: {
             id: true,
             email: true,
-            fullName: true
-          }
+            fullName: true,
+          },
         },
         devices: {
           select: {
@@ -98,24 +97,24 @@ class FarmService {
             deviceName: true,
             deviceType: true,
             isOnline: true,
-            lastSeenAt: true
-          }
+            lastSeenAt: true,
+          },
         },
         _count: {
           select: {
             devices: true,
-            alerts: true
-          }
-        }
+            alerts: true,
+          },
+        },
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: "desc" },
     });
 
     // Get assigned farms via FarmUser
     const assignedFarmUsers = await prisma.farmUser.findMany({
-      where: { 
+      where: {
         userId,
-        isActive: true 
+        isActive: true,
       },
       include: {
         farm: {
@@ -124,8 +123,8 @@ class FarmService {
               select: {
                 id: true,
                 email: true,
-                fullName: true
-              }
+                fullName: true,
+              },
             },
             devices: {
               select: {
@@ -134,37 +133,37 @@ class FarmService {
                 deviceName: true,
                 deviceType: true,
                 isOnline: true,
-                lastSeenAt: true
-              }
+                lastSeenAt: true,
+              },
             },
             _count: {
               select: {
                 devices: true,
-                alerts: true
-              }
-            }
-          }
-        }
-      }
+                alerts: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     // Combine and mark role
     const assignedFarms = assignedFarmUsers
-      .filter(fu => fu.farm.isActive)
-      .map(fu => ({
+      .filter((fu) => fu.farm.isActive)
+      .map((fu) => ({
         ...fu.farm,
-        userRole: fu.role // Add user's role for this farm
+        userRole: fu.role, // Add user's role for this farm
       }));
 
     // Mark owned farms with OWNER role
-    const ownedWithRole = ownedFarms.map(farm => ({
+    const ownedWithRole = ownedFarms.map((farm) => ({
       ...farm,
-      userRole: 'OWNER'
+      userRole: "OWNER",
     }));
 
     // Combine, removing duplicates (prefer owned)
-    const ownedIds = new Set(ownedFarms.map(f => f.id));
-    const uniqueAssigned = assignedFarms.filter(f => !ownedIds.has(f.id));
+    const ownedIds = new Set(ownedFarms.map((f) => f.id));
+    const uniqueAssigned = assignedFarms.filter((f) => !ownedIds.has(f.id));
 
     return [...ownedWithRole, ...uniqueAssigned];
   }
@@ -174,157 +173,77 @@ class FarmService {
    * If userId is null, skip ownership check (Super Admin)
    */
   async getFarmById(farmId, userId = null) {
-    let farm;
-
-    if (userId === null) {
-      // Super Admin - just find the farm
-      farm = await prisma.farm.findUnique({
-        where: { id: farmId },
-        include: {
-          owner: {
-            select: {
-              id: true,
-              email: true,
-              fullName: true,
-              phone: true
-            }
+    // First, just get the farm
+    const farm = await prisma.farm.findUnique({
+      where: { id: farmId },
+      include: {
+        owner: {
+          select: {
+            id: true,
+            email: true,
+            fullName: true,
+            phone: true,
           },
-          devices: {
-            include: {
-              sensors: true,
-              actuators: true
-            }
-          },
-          farmUsers: {
-            where: { isActive: true },
-            include: {
-              user: {
-                select: {
-                  id: true,
-                  email: true,
-                  fullName: true
-                }
-              }
-            }
-          },
-          _count: {
-            select: {
-              devices: true,
-              alerts: true,
-              automationRules: true,
-              farmUsers: true
-            }
-          }
-        }
-      });
-    } else {
-      // Check if user owns the farm
-      farm = await prisma.farm.findFirst({
-        where: { 
-          id: farmId,
-          userId 
         },
-        include: {
-          owner: {
-            select: {
-              id: true,
-              email: true,
-              fullName: true,
-              phone: true
-            }
+        devices: {
+          include: {
+            sensors: true,
+            actuators: true,
           },
-          devices: {
-            include: {
-              sensors: true,
-              actuators: true
-            }
+        },
+        farmUsers: {
+          where: { isActive: true },
+          include: {
+            user: {
+              select: {
+                id: true,
+                email: true,
+                fullName: true,
+              },
+            },
           },
-          farmUsers: {
-            where: { isActive: true },
-            include: {
-              user: {
-                select: {
-                  id: true,
-                  email: true,
-                  fullName: true
-                }
-              }
-            }
+        },
+        _count: {
+          select: {
+            devices: true,
+            alerts: true,
+            automationRules: true,
+            farmUsers: true,
           },
-          _count: {
-            select: {
-              devices: true,
-              alerts: true,
-              automationRules: true,
-              farmUsers: true
-            }
-          }
-        }
-      });
-
-      // If not owner, check FarmUser access
-      if (!farm) {
-        const farmUser = await prisma.farmUser.findUnique({
-          where: {
-            farmId_userId: { farmId, userId }
-          }
-        });
-
-        if (farmUser && farmUser.isActive) {
-          farm = await prisma.farm.findUnique({
-            where: { id: farmId },
-            include: {
-              owner: {
-                select: {
-                  id: true,
-                  email: true,
-                  fullName: true,
-                  phone: true
-                }
-              },
-              devices: {
-                include: {
-                  sensors: true,
-                  actuators: true
-                }
-              },
-              farmUsers: {
-                where: { isActive: true },
-                include: {
-                  user: {
-                    select: {
-                      id: true,
-                      email: true,
-                      fullName: true
-                    }
-                  }
-                }
-              },
-              _count: {
-                select: {
-                  devices: true,
-                  alerts: true,
-                  automationRules: true,
-                  farmUsers: true
-                }
-              }
-            }
-          });
-
-          if (farm) {
-            farm.userRole = farmUser.role;
-          }
-        }
-      } else {
-        farm.userRole = 'OWNER';
-      }
-    }
+        },
+      },
+    });
 
     if (!farm) {
-      throw { status: 404, message: 'Farm not found' };
+      throw { status: 404, message: "Farm not found" };
     }
 
-    return farm;
+    // If userId is null (Super Admin), return farm with SUPER_ADMIN role
+    if (userId === null) {
+      farm.userRole = "SUPER_ADMIN";
+      return farm;
+    }
+
+    // Check if user is owner
+    if (farm.userId === userId) {
+      farm.userRole = "OWNER";
+      return farm;
+    }
+
+    // Check if user has FarmUser access
+    const farmUser = await prisma.farmUser.findUnique({
+      where: {
+        farmId_userId: { farmId, userId },
+      },
+    });
+
+    if (farmUser && farmUser.isActive) {
+      farm.userRole = farmUser.role;
+      return farm;
+    }
+
+    // User has no access
+    throw { status: 404, message: "Farm not found" };
   }
 
   /**
@@ -332,25 +251,21 @@ class FarmService {
    * If userId is null, skip ownership check (Super Admin)
    */
   async updateFarm(farmId, userId = null, updateData) {
-    // Check if farm exists
-    let existingFarm;
+    // First get the farm (this also checks access)
+    const farm = await prisma.farm.findUnique({
+      where: { id: farmId },
+    });
 
-    if (userId === null) {
-      // Super Admin
-      existingFarm = await prisma.farm.findUnique({
-        where: { id: farmId }
-      });
-    } else {
-      existingFarm = await prisma.farm.findFirst({
-        where: { id: farmId, userId }
-      });
+    if (!farm) {
+      throw { status: 404, message: "Farm not found" };
     }
 
-    if (!existingFarm) {
-      throw { status: 404, message: 'Farm not found' };
+    // If not Super Admin, check ownership
+    if (userId !== null && farm.userId !== userId) {
+      throw { status: 404, message: "Farm not found" };
     }
 
-    const farm = await prisma.farm.update({
+    const updatedFarm = await prisma.farm.update({
       where: { id: farmId },
       data: updateData,
       include: {
@@ -359,13 +274,13 @@ class FarmService {
           select: {
             id: true,
             email: true,
-            fullName: true
-          }
-        }
-      }
+            fullName: true,
+          },
+        },
+      },
     });
 
-    return farm;
+    return updatedFarm;
   }
 
   /**
@@ -373,31 +288,26 @@ class FarmService {
    * If userId is null, skip ownership check (Super Admin)
    */
   async deleteFarm(farmId, userId = null) {
-    // Check if farm exists
-    let existingFarm;
-
-    if (userId === null) {
-      // Super Admin
-      existingFarm = await prisma.farm.findUnique({
-        where: { id: farmId }
-      });
-    } else {
-      existingFarm = await prisma.farm.findFirst({
-        where: { id: farmId, userId }
-      });
-    }
-
-    if (!existingFarm) {
-      throw { status: 404, message: 'Farm not found' };
-    }
-
-    // Soft delete - just mark as inactive
-    await prisma.farm.update({
+    const farm = await prisma.farm.findUnique({
       where: { id: farmId },
-      data: { isActive: false }
     });
 
-    return { message: 'Farm deleted successfully' };
+    if (!farm) {
+      throw { status: 404, message: "Farm not found" };
+    }
+
+    // If not Super Admin, check ownership
+    if (userId !== null && farm.userId !== userId) {
+      throw { status: 404, message: "Farm not found" };
+    }
+
+    // Soft delete
+    await prisma.farm.update({
+      where: { id: farmId },
+      data: { isActive: false },
+    });
+
+    return { message: "Farm deleted successfully" };
   }
 
   /**
@@ -405,9 +315,10 @@ class FarmService {
    * If userId is null, skip ownership check (Super Admin)
    */
   async getFarmDashboard(farmId, userId = null) {
+    // First check access and get farm
     const farm = await this.getFarmById(farmId, userId);
 
-    // Get latest sensor readings
+    // Get devices with sensors and actuators
     const devices = await prisma.device.findMany({
       where: { farmId },
       include: {
@@ -421,8 +332,8 @@ class FarmService {
             lastReadingAt: true,
             minThreshold: true,
             maxThreshold: true,
-            isActive: true
-          }
+            isActive: true,
+          },
         },
         actuators: {
           select: {
@@ -432,21 +343,21 @@ class FarmService {
             currentState: true,
             lastActionAt: true,
             isActive: true,
-            gpioPin: true
-          }
-        }
-      }
+            gpioPin: true,
+          },
+        },
+      },
     });
 
     // Get recent alerts
     const recentAlerts = await prisma.alert.findMany({
       where: { farmId },
-      orderBy: { createdAt: 'desc' },
-      take: 10
+      orderBy: { createdAt: "desc" },
+      take: 10,
     });
 
     // Count online devices
-    const onlineDevices = devices.filter(d => d.isOnline).length;
+    const onlineDevices = devices.filter((d) => d.isOnline).length;
     const totalDevices = devices.length;
 
     return {
@@ -456,7 +367,7 @@ class FarmService {
         farmType: farm.farmType,
         location: farm.locationAddress,
         owner: farm.owner,
-        userRole: farm.userRole || 'SUPER_ADMIN'
+        userRole: farm.userRole,
       },
       stats: {
         totalDevices,
@@ -464,10 +375,10 @@ class FarmService {
         offlineDevices: totalDevices - onlineDevices,
         totalSensors: devices.reduce((acc, d) => acc + d.sensors.length, 0),
         totalActuators: devices.reduce((acc, d) => acc + d.actuators.length, 0),
-        teamMembers: farm._count?.farmUsers || 0
+        teamMembers: farm._count?.farmUsers || 0,
       },
       devices,
-      recentAlerts
+      recentAlerts,
     };
   }
 }

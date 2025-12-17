@@ -31,12 +31,15 @@ export default function AutomationRules() {
     cooldownMinutes: 5
   });
 
-  // Permission checks
-  const { hasPermission } = useAuthStore();
-  const canViewAutomation = hasPermission('viewAutomation');
-  const canCreateAutomation = hasPermission('createAutomation');
-  const canEditAutomation = hasPermission('editAutomation');
-  const canDeleteAutomation = hasPermission('deleteAutomation');
+// Get user from store
+const user = useAuthStore((state) => state.user);
+
+// Calculate permissions based on user role
+const userRole = user?.role || 'VIEWER';
+const canViewAutomation = ['SUPER_ADMIN', 'FARM_OWNER', 'MANAGER'].includes(userRole);
+const canCreateAutomation = ['SUPER_ADMIN', 'FARM_OWNER', 'MANAGER'].includes(userRole);
+const canEditAutomation = ['SUPER_ADMIN', 'FARM_OWNER', 'MANAGER'].includes(userRole);
+const canDeleteAutomation = ['SUPER_ADMIN', 'FARM_OWNER'].includes(userRole);
 
   useEffect(() => {
     // Redirect if no permission

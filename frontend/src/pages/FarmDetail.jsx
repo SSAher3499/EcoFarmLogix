@@ -42,8 +42,16 @@ export default function FarmDetail() {
   const [loading, setLoading] = useState(true);
   const [controlLoading, setControlLoading] = useState({});
 
-  // Get user and permissions from auth store
-  const { user, canControlActuators, canManageDevices, canViewAutomation, canViewTeam, canExportData } = useAuthStore();
+  // Get user from auth store
+  const user = useAuthStore((state) => state.user);
+  
+  // Calculate permissions based on user role
+  const userRole = user?.role || 'VIEWER';
+  const canControlActuators = ['SUPER_ADMIN', 'FARM_OWNER', 'MANAGER', 'OPERATOR'].includes(userRole);
+  const canManageDevices = userRole === 'SUPER_ADMIN';
+  const canViewAutomation = ['SUPER_ADMIN', 'FARM_OWNER', 'MANAGER'].includes(userRole);
+  const canViewTeam = ['SUPER_ADMIN', 'FARM_OWNER', 'MANAGER'].includes(userRole);
+  const canInviteUsers = ['SUPER_ADMIN', 'FARM_OWNER'].includes(userRole);
 
   const loadDashboard = useCallback(async () => {
     setLoading(true);
@@ -155,7 +163,7 @@ export default function FarmDetail() {
 
   const handleActuatorControl = async (actuatorId, currentState) => {
     // Check permission first
-    if (!canControlActuators()) {
+    if (!canControlActuators) {
       toast.error("You don't have permission to control actuators");
       return;
     }
@@ -201,7 +209,7 @@ export default function FarmDetail() {
   }
 
   // Get user's role for this farm
-  const farmUserRole = dashboard.farm?.userRole || user?.role;
+  const farmUserRole = dashboard.farm?.userRole || userRole;
 
   return (
     <div>
@@ -219,7 +227,7 @@ export default function FarmDetail() {
           </div>
           <p className="text-gray-500">
             {dashboard.farm?.location || dashboard.farm?.farmType}
-            {dashboard.farm?.owner && user?.role === 'SUPER_ADMIN' && (
+            {dashboard.farm?.owner && userRole === 'SUPER_ADMIN' && (
               <span className="ml-2 text-sm">
                 • Owner: {dashboard.farm.owner.fullName}
               </span>
@@ -228,7 +236,7 @@ export default function FarmDetail() {
         </div>
 
         <div className="flex items-center gap-3">
-          {/* History - visible to all except VIEWER if they can't export */}
+          {/* History - visible to all */}
           <Link
             to={`/farms/${farmId}/history`}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
@@ -238,7 +246,7 @@ export default function FarmDetail() {
           </Link>
 
           {/* Automation - only for users with permission */}
-          {canViewAutomation() && (
+          {canViewAutomation && (
             <Link
               to={`/farms/${farmId}/automation`}
               className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
@@ -249,7 +257,7 @@ export default function FarmDetail() {
           )}
 
           {/* Team - only for OWNER and above */}
-          {canViewTeam() && (
+          {canViewTeam && (
             <Link
               to={`/farms/${farmId}/team`}
               className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
@@ -260,7 +268,7 @@ export default function FarmDetail() {
           )}
 
           {/* Devices - Super Admin only */}
-          {canManageDevices() && (
+          {canManageDevices && (
             <Link
               to={`/farms/${farmId}/devices`}
               className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
@@ -328,7 +336,7 @@ export default function FarmDetail() {
             {allSensors.length === 0 ? (
               <div className="bg-white rounded-lg shadow p-6 text-center text-gray-500">
                 No sensors configured
-                {canManageDevices() && (
+                {canManageDevices && (
                   <div className="mt-2">
                     <Link to={`/farms/${farmId}/devices`} className="text-blue-600 hover:underline">
                       Add sensors →
@@ -392,7 +400,7 @@ export default function FarmDetail() {
           <div className="mb-6">
             <h2 className="text-lg font-semibold text-gray-800 mb-4">
               ⚡ Actuator Controls
-              {!canControlActuators() && (
+              {!canControlActuators && (
                 <span className="ml-2 text-sm font-normal text-gray-500">
                   (View only)
                 </span>
@@ -402,7 +410,7 @@ export default function FarmDetail() {
             {allActuators.length === 0 ? (
               <div className="bg-white rounded-lg shadow p-6 text-center text-gray-500">
                 No actuators configured
-                {canManageDevices() && (
+                {canManageDevices && (
                   <div className="mt-2">
                     <Link to={`/farms/${farmId}/devices`} className="text-blue-600 hover:underline">
                       Add actuators →
@@ -435,7 +443,7 @@ export default function FarmDetail() {
                       />
                     </div>
 
-                    {canControlActuators() ? (
+                    {canControlActuators ? (
                       <button
                         type="button"
                         onClick={() =>
@@ -521,8 +529,8 @@ export default function FarmDetail() {
                 showRecommendations={true}
               />
             </div>
-          </div>
-        </aside>
+          </aside>
+        </div>
       </div>
     </div>
   );
