@@ -44,14 +44,23 @@ export default function FarmDetail() {
 
   // Get user from auth store
   const user = useAuthStore((state) => state.user);
-  
+
   // Calculate permissions based on user role
-  const userRole = user?.role || 'VIEWER';
-  const canControlActuators = ['SUPER_ADMIN', 'FARM_OWNER', 'MANAGER', 'OPERATOR'].includes(userRole);
-  const canManageDevices = userRole === 'SUPER_ADMIN';
-  const canViewAutomation = ['SUPER_ADMIN', 'FARM_OWNER', 'MANAGER'].includes(userRole);
-  const canViewTeam = ['SUPER_ADMIN', 'FARM_OWNER', 'MANAGER'].includes(userRole);
-  const canInviteUsers = ['SUPER_ADMIN', 'FARM_OWNER'].includes(userRole);
+  const userRole = user?.role || "VIEWER";
+  const canControlActuators = [
+    "SUPER_ADMIN",
+    "FARM_OWNER",
+    "MANAGER",
+    "OPERATOR",
+  ].includes(userRole);
+  const canManageDevices = userRole === "SUPER_ADMIN";
+  const canViewAutomation = ["SUPER_ADMIN", "FARM_OWNER", "MANAGER"].includes(
+    userRole
+  );
+  const canViewTeam = ["SUPER_ADMIN", "FARM_OWNER", "MANAGER"].includes(
+    userRole
+  );
+  const canInviteUsers = ["SUPER_ADMIN", "FARM_OWNER"].includes(userRole);
 
   const loadDashboard = useCallback(async () => {
     setLoading(true);
@@ -221,13 +230,17 @@ export default function FarmDetail() {
               {dashboard.farm?.name}
             </h1>
             {/* Role Badge */}
-            <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getRoleBadgeColor(farmUserRole)}`}>
+            <span
+              className={`px-2 py-1 text-xs font-semibold rounded-full ${getRoleBadgeColor(
+                farmUserRole
+              )}`}
+            >
               {getRoleDisplayName(farmUserRole)}
             </span>
           </div>
           <p className="text-gray-500">
             {dashboard.farm?.location || dashboard.farm?.farmType}
-            {dashboard.farm?.owner && userRole === 'SUPER_ADMIN' && (
+            {dashboard.farm?.owner && userRole === "SUPER_ADMIN" && (
               <span className="ml-2 text-sm">
                 • Owner: {dashboard.farm.owner.fullName}
               </span>
@@ -338,7 +351,10 @@ export default function FarmDetail() {
                 No sensors configured
                 {canManageDevices && (
                   <div className="mt-2">
-                    <Link to={`/farms/${farmId}/devices`} className="text-blue-600 hover:underline">
+                    <Link
+                      to={`/farms/${farmId}/devices`}
+                      className="text-blue-600 hover:underline"
+                    >
                       Add sensors →
                     </Link>
                   </div>
@@ -412,7 +428,10 @@ export default function FarmDetail() {
                 No actuators configured
                 {canManageDevices && (
                   <div className="mt-2">
-                    <Link to={`/farms/${farmId}/devices`} className="text-blue-600 hover:underline">
+                    <Link
+                      to={`/farms/${farmId}/devices`}
+                      className="text-blue-600 hover:underline"
+                    >
                       Add actuators →
                     </Link>
                   </div>
@@ -468,16 +487,21 @@ export default function FarmDetail() {
                         ) : (
                           <FiPower size={18} />
                         )}
-                        {actuator.currentState === "ON" ? "Turn OFF" : "Turn ON"}
+                        {actuator.currentState === "ON"
+                          ? "Turn OFF"
+                          : "Turn ON"}
                       </button>
                     ) : (
-                      <div className={`
+                      <div
+                        className={`
                         w-full py-2 px-4 rounded-lg text-center font-medium
-                        ${actuator.currentState === "ON" 
-                          ? "bg-green-100 text-green-700" 
-                          : "bg-gray-100 text-gray-600"
+                        ${
+                          actuator.currentState === "ON"
+                            ? "bg-green-100 text-green-700"
+                            : "bg-gray-100 text-gray-600"
                         }
-                      `}>
+                      `}
+                      >
                         {actuator.currentState}
                       </div>
                     )}
@@ -529,8 +553,8 @@ export default function FarmDetail() {
                 showRecommendations={true}
               />
             </div>
-          </aside>
-        </div>
+          </div>
+        </aside>
       </div>
     </div>
   );
