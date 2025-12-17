@@ -152,7 +152,7 @@ class FarmService {
       .filter((fu) => fu.farm.isActive)
       .map((fu) => ({
         ...fu.farm,
-        userRole: fu.role, // Add user's role for this farm
+        userRole: fu.role,
       }));
 
     // Mark owned farms with OWNER role
@@ -251,7 +251,6 @@ class FarmService {
    * If userId is null, skip ownership check (Super Admin)
    */
   async updateFarm(farmId, userId = null, updateData) {
-    // First get the farm (this also checks access)
     const farm = await prisma.farm.findUnique({
       where: { id: farmId },
     });
@@ -301,7 +300,6 @@ class FarmService {
       throw { status: 404, message: "Farm not found" };
     }
 
-    // Soft delete
     await prisma.farm.update({
       where: { id: farmId },
       data: { isActive: false },
