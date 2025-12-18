@@ -12,6 +12,7 @@ const weatherRoutes = require('./weather.routes');
 const automationRoutes = require('./automation.routes');
 const userRoutes = require('./user.routes');
 const teamRoutes = require('./team.routes');
+const serialConfigRoutes = require('./serialConfig.routes');
 
 // Mount routes
 router.use('/auth', authRoutes);
@@ -24,6 +25,7 @@ router.use('/sensors', sensorRoutes);
 router.use('/', historyRoutes);
 router.use('/', automationRoutes);
 router.use('/', teamRoutes);
+router.use('/', serialConfigRoutes);
 
 // API info route
 router.get('/', (req, res) => {

@@ -132,23 +132,24 @@ enum FarmType {
 // ==========================================
 
 model Device {
-  id              String       @id @default(uuid())
-  farmId          String       @map("farm_id")
-  macAddress      String       @unique @map("mac_address")
-  deviceName      String       @map("device_name")
-  deviceType      DeviceType   @map("device_type")
-  firmwareVersion String?      @map("firmware_version")
-  isOnline        Boolean      @default(false) @map("is_online")
-  lastSeenAt      DateTime?    @map("last_seen_at")
-  ipAddress       String?      @map("ip_address")
-  config          Json?        @default("{}")
-  createdAt       DateTime     @default(now()) @map("created_at")
-  updatedAt       DateTime     @updatedAt @map("updated_at")
+  id              String        @id @default(uuid())
+  farmId          String        @map("farm_id")
+  macAddress      String        @unique @map("mac_address")
+  deviceName      String        @map("device_name")
+  deviceType      DeviceType    @map("device_type")
+  firmwareVersion String?       @map("firmware_version")
+  isOnline        Boolean       @default(false) @map("is_online")
+  lastSeenAt      DateTime?     @map("last_seen_at")
+  ipAddress       String?       @map("ip_address")
+  config          Json?         @default("{}")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
 
   // Relations
-  farm      Farm       @relation(fields: [farmId], references: [id], onDelete: Cascade)
-  sensors   Sensor[]
-  actuators Actuator[]
+  farm         Farm          @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  sensors      Sensor[]
+  actuators    Actuator[]
+  serialConfig SerialConfig?
 
   @@map("devices")
 }
@@ -158,6 +159,36 @@ enum DeviceType {
   SENSOR_NODE
   RELAY_NODE
   CAMERA
+  RASPBERRY_PI
+}
+
+// ==========================================
+// SERIAL PORT CONFIGURATION (per device)
+// ==========================================
+
+model SerialConfig {
+  id            String   @id @default(uuid())
+  deviceId      String   @unique @map("device_id")
+  
+  // Serial Port Settings
+  portName      String   @default("/dev/ttyUSB0") @map("port_name")
+  baudRate      Int      @default(9600) @map("baud_rate")
+  dataBits      Int      @default(8) @map("data_bits")
+  parity        String   @default("none")
+  stopBits      Int      @default(1) @map("stop_bits")
+  
+  // Modbus Settings
+  timeout       Int      @default(1000)
+  retries       Int      @default(3)
+  pollInterval  Int      @default(5000) @map("poll_interval")
+  
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  device        Device   @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+
+  @@map("serial_configs")
 }
 
 // ==========================================
@@ -170,10 +201,28 @@ model Sensor {
   sensorType        SensorType @map("sensor_type")
   sensorName        String     @map("sensor_name")
   unit              String
+  
+  // Connection Type
+  connectionType    String     @default("GPIO") @map("connection_type")  // GPIO, MODBUS_RTU, MODBUS_TCP, ANALOG, I2C
+  
+  // Modbus Configuration
+  slaveId           Int?       @map("slave_id")           // Modbus slave address (1-247)
+  functionCode      Int?       @map("function_code")      // 1, 2, 3, 4
+  registerAddress   Int?       @map("register_address")   // Starting register address
+  registerCount     Int?       @default(1) @map("register_count")  // Number of registers to read
+  dataType          String?    @default("INT16") @map("data_type") // INT16, UINT16, INT32, UINT32, FLOAT32
+  byteOrder         String?    @default("AB") @map("byte_order")   // AB, BA, ABCD, DCBA, CDAB, BADC
+  scaleFactor       Decimal?   @default(1) @map("scale_factor") @db.Decimal(10, 6)
+  decimalPlaces     Int?       @default(1) @map("decimal_places")
+  offset            Decimal?   @default(0) @db.Decimal(10, 4)
+  
+  // Thresholds & Calibration
   minThreshold      Decimal?   @map("min_threshold") @db.Decimal(10, 2)
   maxThreshold      Decimal?   @map("max_threshold") @db.Decimal(10, 2)
   calibrationOffset Decimal    @default(0) @map("calibration_offset") @db.Decimal(10, 4)
-  readingInterval   Int        @default(60) @map("reading_interval") // seconds
+  readingInterval   Int        @default(60) @map("reading_interval")
+  
+  // Current State
   isActive          Boolean    @default(true) @map("is_active")
   lastReading       Decimal?   @map("last_reading") @db.Decimal(10, 2)
   lastReadingAt     DateTime?  @map("last_reading_at")
@@ -213,6 +262,12 @@ model Actuator {
   actuatorType ActuatorType @map("actuator_type")
   actuatorName String       @map("actuator_name")
   gpioPin      Int?         @map("gpio_pin")
+  
+  // Modbus Configuration for Actuators
+  connectionType   String    @default("GPIO") @map("connection_type")  // GPIO, MODBUS_RTU
+  slaveId          Int?      @map("slave_id")
+  registerAddress  Int?      @map("register_address")
+  
   isActive     Boolean      @default(true) @map("is_active")
   currentState String       @default("OFF") @map("current_state")
   lastActionAt DateTime?    @map("last_action_at")
@@ -239,6 +294,7 @@ enum ActuatorType {
   COOLER
   DOSING_PUMP
   WATER_PUMP
+  RELAY
 }
 
 // ==========================================
