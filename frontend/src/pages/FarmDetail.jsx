@@ -80,20 +80,11 @@ export default function FarmDetail() {
     // Connect WebSocket and subscribe
     const token = localStorage.getItem("accessToken");
 
-    const setupSocket = async () => {
-      await socketService.connect(token);
-      socketService.subscribeFarm(farmId);
-
-      // Set up listeners AFTER connection
-      socketService.onSensorUpdate(onSensor);
-      socketService.onActuatorUpdate(onActuator);
-      socketService.onAlert(onAlert);
-    };
-
-    setupSocket();
-
+    // Define handlers BEFORE registering them
     // Sensor update handler
     const onSensor = (data) => {
+      console.log("📥 WebSocket sensor:update received:", data);
+
       setDashboard((prev) => {
         if (!prev) return prev;
         try {
@@ -148,6 +139,7 @@ export default function FarmDetail() {
           ),
         }));
 
+        console.log("✅ Dashboard updated with new actuator state:", actuatorId, state);
         return { ...prev, devices: updatedDevices };
       });
     };
@@ -162,6 +154,18 @@ export default function FarmDetail() {
         console.error("Malformed alert", data);
       }
     };
+
+    const setupSocket = async () => {
+      await socketService.connect(token);
+      socketService.subscribeFarm(farmId);
+
+      // Register handlers AFTER they're defined
+      socketService.onSensorUpdate(onSensor);
+      socketService.onActuatorUpdate(onActuator);
+      socketService.onAlert(onAlert);
+    };
+
+    setupSocket();
 
     // Cleanup
     return () => {
