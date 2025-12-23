@@ -1,0 +1,135 @@
+version: '3.8'
+
+services:
+  # PostgreSQL - Main Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: ecofarm-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ecofarm
+      POSTGRES_PASSWORD: ecofarm123
+      POSTGRES_DB: ecofarmlogix
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - ecofarm-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ecofarm -d ecofarmlogix"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis - Caching & Sessions
+  redis:
+    image: redis:7-alpine
+    container_name: ecofarm-redis
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    networks:
+      - ecofarm-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # InfluxDB - Time Series Database
+  influxdb:
+    image: influxdb:2.7-alpine
+    container_name: ecofarm-influxdb
+    restart: unless-stopped
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: admin
+      DOCKER_INFLUXDB_INIT_PASSWORD: admin12345
+      DOCKER_INFLUXDB_INIT_ORG: ecofarmlogix
+      DOCKER_INFLUXDB_INIT_BUCKET: sensor_data
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: my-super-secret-token
+    volumes:
+      - influxdb_data:/var/lib/influxdb2
+    networks:
+      - ecofarm-network
+    healthcheck:
+      test: ["CMD", "influx", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # EMQX - MQTT Broker
+  emqx:
+    image: emqx/emqx:5.3
+    container_name: ecofarm-emqx
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+      - "8083:8083"
+      - "18083:18083"
+    environment:
+      EMQX_NAME: ecofarm_emqx
+      EMQX_HOST: 0.0.0.0
+    volumes:
+      - emqx_data:/opt/emqx/data
+    networks:
+      - ecofarm-network
+    healthcheck:
+      test: ["CMD", "emqx", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend API
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: ecofarm-backend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://ecofarm:ecofarm123@postgres:5432/ecofarmlogix
+      REDIS_URL: redis://redis:6379
+      MQTT_BROKER_URL: mqtt://emqx:1883
+      INFLUXDB_URL: http://influxdb:8086
+      INFLUXDB_TOKEN: my-super-secret-token
+      INFLUXDB_ORG: ecofarmlogix
+      INFLUXDB_BUCKET: sensor_data
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      CORS_ORIGIN: https://iot.chandramaautomation.com
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      emqx:
+        condition: service_healthy
+    networks:
+      - ecofarm-network
+
+  # Frontend (Nginx serving static files)
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    container_name: ecofarm-frontend
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    networks:
+      - ecofarm-network
+
+networks:
+  ecofarm-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  influxdb_data:
+  emqx_data:
