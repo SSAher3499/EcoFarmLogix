@@ -35,8 +35,6 @@ const updateDeviceSchema = Joi.object({
   isActive: Joi.boolean().optional(),
 });
 
-// Sensor configuration
-const Joi = require("joi");
 
 const createSensorSchema = Joi.object({
   sensorType: Joi.string()
