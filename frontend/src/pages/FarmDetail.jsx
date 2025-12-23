@@ -93,7 +93,12 @@ export default function FarmDetail() {
     setupSocket();
 
     // Sensor update handler
+    // Sensor update handler
     const onSensor = (data) => {
+      console.log("📥 Raw sensor:update received:", data);
+      console.log("📥 deviceId:", data?.data?.deviceId);
+      console.log("📥 sensors:", data?.data?.sensors);
+
       setDashboard((prev) => {
         if (!prev) return prev;
         try {
