@@ -619,8 +619,8 @@ export default function DeviceManagement() {
           ADD DEVICE MODAL
           ========================================== */}
       {showDeviceModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <h2 className="text-xl font-bold text-gray-800 mb-4">Register New Device</h2>
               
@@ -693,7 +693,7 @@ export default function DeviceManagement() {
           ========================================== */}
       {showSensorModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl my-8">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto my-auto">
             <div className="p-6">
               <h2 className="text-xl font-bold text-gray-800 mb-1">Add Sensor</h2>
               <p className="text-sm text-gray-500 mb-4">to {selectedDevice?.deviceName}</p>
@@ -1004,8 +1004,8 @@ export default function DeviceManagement() {
           ADD ACTUATOR MODAL (WITH MODBUS SUPPORT)
           ========================================== */}
       {showActuatorModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <h2 className="text-xl font-bold text-gray-800 mb-1">Add Actuator</h2>
               <p className="text-sm text-gray-500 mb-4">to {selectedDevice?.deviceName}</p>
@@ -1140,8 +1140,8 @@ export default function DeviceManagement() {
           SERIAL PORT CONFIGURATION MODAL
           ========================================== */}
       {showSerialConfigModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <h2 className="text-xl font-bold text-gray-800 mb-1">Serial Port Configuration</h2>
               <p className="text-sm text-gray-500 mb-4">RS485/Modbus settings for {selectedDevice?.deviceName}</p>
