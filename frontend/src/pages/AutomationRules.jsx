@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { FiArrowLeft, FiPlus, FiTrash2, FiEdit2, FiPower, FiZap } from 'react-icons/fi';
 import toast from 'react-hot-toast';
+import { useTranslation } from '../hooks/useTranslation';
 import automationService from '../services/automation.service';
 import { useAuthStore } from '../store/authStore';
 
@@ -16,6 +17,7 @@ const CONDITIONS = {
 export default function AutomationRules() {
   const { farmId } = useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [rules, setRules] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -31,33 +33,33 @@ export default function AutomationRules() {
     cooldownMinutes: 5
   });
 
-// Get user from store
-const user = useAuthStore((state) => state.user);
+  // Get user from store
+  const user = useAuthStore((state) => state.user);
 
-// Calculate permissions based on user role
-const userRole = user?.role || 'VIEWER';
-const canViewAutomation = ['SUPER_ADMIN', 'FARM_OWNER', 'MANAGER'].includes(userRole);
-const canCreateAutomation = ['SUPER_ADMIN', 'FARM_OWNER', 'MANAGER'].includes(userRole);
-const canEditAutomation = ['SUPER_ADMIN', 'FARM_OWNER', 'MANAGER'].includes(userRole);
-const canDeleteAutomation = ['SUPER_ADMIN', 'FARM_OWNER'].includes(userRole);
+  // Calculate permissions based on user role
+  const userRole = user?.role || 'VIEWER';
+  const canViewAutomation = ['SUPER_ADMIN', 'FARM_OWNER', 'MANAGER'].includes(userRole);
+  const canCreateAutomation = ['SUPER_ADMIN', 'FARM_OWNER', 'MANAGER'].includes(userRole);
+  const canEditAutomation = ['SUPER_ADMIN', 'FARM_OWNER', 'MANAGER'].includes(userRole);
+  const canDeleteAutomation = ['SUPER_ADMIN', 'FARM_OWNER'].includes(userRole);
 
   useEffect(() => {
     // Redirect if no permission
     if (!canViewAutomation) {
-      toast.error("You don't have permission to view automation rules");
+      toast.error(t('messages.permissionDenied'));
       navigate(`/farms/${farmId}`);
       return;
     }
     loadRules();
     loadComponents();
-  }, [farmId, canViewAutomation, navigate]);
+  }, [farmId, canViewAutomation, navigate, t]);
 
   const loadRules = async () => {
     try {
       const data = await automationService.getFarmRules(farmId);
       setRules(data.data.rules);
     } catch (error) {
-      toast.error('Failed to load automation rules');
+      toast.error(t('automation.loadFailed', 'Failed to load automation rules'));
     } finally {
       setLoading(false);
     }
@@ -77,16 +79,16 @@ const canDeleteAutomation = ['SUPER_ADMIN', 'FARM_OWNER'].includes(userRole);
     
     // Check permission
     if (editingRule && !canEditAutomation) {
-      toast.error("You don't have permission to edit automation rules");
+      toast.error(t('messages.permissionDenied'));
       return;
     }
     if (!editingRule && !canCreateAutomation) {
-      toast.error("You don't have permission to create automation rules");
+      toast.error(t('messages.permissionDenied'));
       return;
     }
 
     if (!formData.name || !formData.sensorId || !formData.actuatorId || !formData.value) {
-      toast.error('Please fill all required fields');
+      toast.error(t('messages.validationError'));
       return;
     }
 
@@ -108,22 +110,22 @@ const canDeleteAutomation = ['SUPER_ADMIN', 'FARM_OWNER'].includes(userRole);
     try {
       if (editingRule) {
         await automationService.updateRule(editingRule.id, ruleData);
-        toast.success('Rule updated successfully');
+        toast.success(t('automation.ruleUpdated', 'Rule updated successfully'));
       } else {
         await automationService.createRule(farmId, ruleData);
-        toast.success('Rule created successfully');
+        toast.success(t('automation.ruleCreated', 'Rule created successfully'));
       }
       setShowModal(false);
       resetForm();
       loadRules();
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to save rule');
+      toast.error(error.response?.data?.message || t('messages.saveFailed'));
     }
   };
 
   const handleEdit = (rule) => {
     if (!canEditAutomation) {
-      toast.error("You don't have permission to edit automation rules");
+      toast.error(t('messages.permissionDenied'));
       return;
     }
     setEditingRule(rule);
@@ -141,30 +143,30 @@ const canDeleteAutomation = ['SUPER_ADMIN', 'FARM_OWNER'].includes(userRole);
 
   const handleDelete = async (ruleId) => {
     if (!canDeleteAutomation) {
-      toast.error("You don't have permission to delete automation rules");
+      toast.error(t('messages.permissionDenied'));
       return;
     }
-    if (!confirm('Are you sure you want to delete this rule?')) return;
+    if (!confirm(t('messages.confirmDelete'))) return;
 
     try {
       await automationService.deleteRule(ruleId);
-      toast.success('Rule deleted');
+      toast.success(t('messages.deleteSuccess'));
       loadRules();
     } catch (error) {
-      toast.error('Failed to delete rule');
+      toast.error(t('messages.deleteFailed'));
     }
   };
 
   const handleToggle = async (ruleId) => {
     if (!canEditAutomation) {
-      toast.error("You don't have permission to toggle automation rules");
+      toast.error(t('messages.permissionDenied'));
       return;
     }
     try {
       await automationService.toggleRule(ruleId);
       loadRules();
     } catch (error) {
-      toast.error('Failed to toggle rule');
+      toast.error(t('automation.toggleFailed', 'Failed to toggle rule'));
     }
   };
 
@@ -183,7 +185,7 @@ const canDeleteAutomation = ['SUPER_ADMIN', 'FARM_OWNER'].includes(userRole);
 
   const openNewRuleModal = () => {
     if (!canCreateAutomation) {
-      toast.error("You don't have permission to create automation rules");
+      toast.error(t('messages.permissionDenied'));
       return;
     }
     resetForm();
@@ -207,11 +209,11 @@ const canDeleteAutomation = ['SUPER_ADMIN', 'FARM_OWNER'].includes(userRole);
             <FiArrowLeft size={20} />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-gray-800">Automation Rules</h1>
+            <h1 className="text-2xl font-bold text-gray-800">{t('automation.title')}</h1>
             <p className="text-gray-500 text-sm">
               {canCreateAutomation 
-                ? 'Create rules to automate your farm' 
-                : 'View automation rules (read-only)'
+                ? t('automation.subtitle', 'Create rules to automate your farm')
+                : t('automation.viewOnly', 'View automation rules (read-only)')
               }
             </p>
           </div>
@@ -222,7 +224,7 @@ const canDeleteAutomation = ['SUPER_ADMIN', 'FARM_OWNER'].includes(userRole);
             className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
           >
             <FiPlus size={18} />
-            Add Rule
+            {t('automation.addRule')}
           </button>
         )}
       </div>
@@ -231,11 +233,11 @@ const canDeleteAutomation = ['SUPER_ADMIN', 'FARM_OWNER'].includes(userRole);
       {rules.length === 0 ? (
         <div className="bg-white rounded-xl shadow p-12 text-center">
           <div className="text-6xl mb-4">🤖</div>
-          <h2 className="text-xl font-semibold text-gray-700 mb-2">No automation rules yet</h2>
+          <h2 className="text-xl font-semibold text-gray-700 mb-2">{t('automation.noRules')}</h2>
           <p className="text-gray-500 mb-6">
             {canCreateAutomation 
-              ? 'Create your first rule to automate actuators based on sensor readings'
-              : 'No automation rules have been created for this farm'
+              ? t('automation.noRulesDesc', 'Create your first rule to automate actuators based on sensor readings')
+              : t('automation.noRulesViewOnly', 'No automation rules have been created for this farm')
             }
           </p>
           {canCreateAutomation && (
@@ -243,7 +245,7 @@ const canDeleteAutomation = ['SUPER_ADMIN', 'FARM_OWNER'].includes(userRole);
               onClick={openNewRuleModal}
               className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700"
             >
-              Create First Rule
+              {t('automation.createFirst', 'Create First Rule')}
             </button>
           )}
         </div>
@@ -259,31 +261,31 @@ const canDeleteAutomation = ['SUPER_ADMIN', 'FARM_OWNER'].includes(userRole);
                     <span className={`px-2 py-1 text-xs rounded-full ${
                       rule.isEnabled ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
                     }`}>
-                      {rule.isEnabled ? 'Active' : 'Disabled'}
+                      {rule.isEnabled ? t('automation.enabled') : t('automation.disabled')}
                     </span>
                   </div>
                   
                   <div className="text-sm text-gray-600 space-y-1">
                     <p>
-                      <span className="font-medium">IF</span>{' '}
-                      <span className="text-blue-600">{rule.sensor?.sensorName || 'Unknown Sensor'}</span>{' '}
+                      <span className="font-medium">{t('automation.if', 'IF')}</span>{' '}
+                      <span className="text-blue-600">{rule.sensor?.sensorName || t('automation.unknownSensor', 'Unknown Sensor')}</span>{' '}
                       <span className="font-mono bg-gray-100 px-1 rounded">
                         {CONDITIONS[rule.triggerConfig?.condition]} {rule.triggerConfig?.value}
                       </span>{' '}
                       {rule.sensor?.unit}
                     </p>
                     <p>
-                      <span className="font-medium">THEN</span>{' '}
+                      <span className="font-medium">{t('automation.then', 'THEN')}</span>{' '}
                       <span className="text-purple-600">{rule.actuator?.actuatorName}</span>{' '}
                       <span className={`font-semibold ${
                         rule.actionConfig?.state === 'ON' ? 'text-green-600' : 'text-red-600'
                       }`}>
-                        → {rule.actionConfig?.state}
+                        → {rule.actionConfig?.state === 'ON' ? t('actuators.on') : t('actuators.off')}
                       </span>
                     </p>
                     <p className="text-xs text-gray-400">
-                      Cooldown: {rule.triggerConfig?.cooldownMinutes || 5} minutes
-                      {rule.lastRunAt && ` • Last triggered: ${new Date(rule.lastRunAt).toLocaleString()}`}
+                      {t('automation.cooldown', 'Cooldown')}: {rule.triggerConfig?.cooldownMinutes || 5} {t('automation.minutes', 'minutes')}
+                      {rule.lastRunAt && ` • ${t('automation.lastTriggered', 'Last triggered')}: ${new Date(rule.lastRunAt).toLocaleString()}`}
                     </p>
                   </div>
                 </div>
@@ -296,7 +298,7 @@ const canDeleteAutomation = ['SUPER_ADMIN', 'FARM_OWNER'].includes(userRole);
                       className={`p-2 rounded-lg ${
                         rule.isEnabled ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'
                       }`}
-                      title={rule.isEnabled ? 'Disable' : 'Enable'}
+                      title={rule.isEnabled ? t('automation.disable', 'Disable') : t('automation.enable', 'Enable')}
                     >
                       <FiPower size={18} />
                     </button>
@@ -307,7 +309,7 @@ const canDeleteAutomation = ['SUPER_ADMIN', 'FARM_OWNER'].includes(userRole);
                     <button
                       onClick={() => handleEdit(rule)}
                       className="p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200"
-                      title="Edit"
+                      title={t('common.edit')}
                     >
                       <FiEdit2 size={18} />
                     </button>
@@ -318,7 +320,7 @@ const canDeleteAutomation = ['SUPER_ADMIN', 'FARM_OWNER'].includes(userRole);
                     <button
                       onClick={() => handleDelete(rule.id)}
                       className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200"
-                      title="Delete"
+                      title={t('common.delete')}
                     >
                       <FiTrash2 size={18} />
                     </button>
@@ -336,37 +338,37 @@ const canDeleteAutomation = ['SUPER_ADMIN', 'FARM_OWNER'].includes(userRole);
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <h2 className="text-xl font-bold text-gray-800 mb-4">
-                {editingRule ? 'Edit Rule' : 'Create Automation Rule'}
+                {editingRule ? t('automation.editRule', 'Edit Rule') : t('automation.createRule', 'Create Automation Rule')}
               </h2>
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 {/* Rule Name */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Rule Name *
+                    {t('automation.ruleName')} *
                   </label>
                   <input
                     type="text"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="e.g., High Temp Fan Control"
+                    placeholder={t('automation.ruleNamePlaceholder', 'e.g., High Temp Fan Control')}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
                   />
                 </div>
 
                 {/* IF Section */}
                 <div className="bg-blue-50 p-4 rounded-lg">
-                  <p className="text-sm font-semibold text-blue-800 mb-3">IF (Trigger Condition)</p>
+                  <p className="text-sm font-semibold text-blue-800 mb-3">{t('automation.ifCondition', 'IF (Trigger Condition)')}</p>
                   
                   <div className="space-y-3">
                     <div>
-                      <label className="block text-xs text-gray-600 mb-1">Sensor *</label>
+                      <label className="block text-xs text-gray-600 mb-1">{t('sensors.title')} *</label>
                       <select
                         value={formData.sensorId}
                         onChange={(e) => setFormData({ ...formData, sensorId: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
                       >
-                        <option value="">Select Sensor</option>
+                        <option value="">{t('automation.selectSensor', 'Select Sensor')}</option>
                         {components.sensors.map((sensor) => (
                           <option key={sensor.id} value={sensor.id}>
                             {sensor.sensorName} ({sensor.sensorType}) - {sensor.deviceName}
@@ -377,21 +379,21 @@ const canDeleteAutomation = ['SUPER_ADMIN', 'FARM_OWNER'].includes(userRole);
 
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-xs text-gray-600 mb-1">Condition *</label>
+                        <label className="block text-xs text-gray-600 mb-1">{t('automation.condition')} *</label>
                         <select
                           value={formData.condition}
                           onChange={(e) => setFormData({ ...formData, condition: e.target.value })}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
                         >
-                          <option value="GREATER_THAN">Greater than (&gt;)</option>
-                          <option value="LESS_THAN">Less than (&lt;)</option>
-                          <option value="GREATER_THAN_OR_EQUAL">Greater or equal (≥)</option>
-                          <option value="LESS_THAN_OR_EQUAL">Less or equal (≤)</option>
-                          <option value="EQUAL_TO">Equal to (=)</option>
+                          <option value="GREATER_THAN">{t('automation.greaterThan', 'Greater than')} (&gt;)</option>
+                          <option value="LESS_THAN">{t('automation.lessThan', 'Less than')} (&lt;)</option>
+                          <option value="GREATER_THAN_OR_EQUAL">{t('automation.greaterOrEqual', 'Greater or equal')} (≥)</option>
+                          <option value="LESS_THAN_OR_EQUAL">{t('automation.lessOrEqual', 'Less or equal')} (≤)</option>
+                          <option value="EQUAL_TO">{t('automation.equalTo', 'Equal to')} (=)</option>
                         </select>
                       </div>
                       <div>
-                        <label className="block text-xs text-gray-600 mb-1">Value *</label>
+                        <label className="block text-xs text-gray-600 mb-1">{t('automation.value', 'Value')} *</label>
                         <input
                           type="number"
                           step="0.1"
@@ -407,17 +409,17 @@ const canDeleteAutomation = ['SUPER_ADMIN', 'FARM_OWNER'].includes(userRole);
 
                 {/* THEN Section */}
                 <div className="bg-purple-50 p-4 rounded-lg">
-                  <p className="text-sm font-semibold text-purple-800 mb-3">THEN (Action)</p>
+                  <p className="text-sm font-semibold text-purple-800 mb-3">{t('automation.thenAction', 'THEN (Action)')}</p>
                   
                   <div className="space-y-3">
                     <div>
-                      <label className="block text-xs text-gray-600 mb-1">Actuator *</label>
+                      <label className="block text-xs text-gray-600 mb-1">{t('actuators.title')} *</label>
                       <select
                         value={formData.actuatorId}
                         onChange={(e) => setFormData({ ...formData, actuatorId: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
                       >
-                        <option value="">Select Actuator</option>
+                        <option value="">{t('automation.selectActuator', 'Select Actuator')}</option>
                         {components.actuators.map((actuator) => (
                           <option key={actuator.id} value={actuator.id}>
                             {actuator.actuatorName} ({actuator.actuatorType}) - {actuator.deviceName}
@@ -427,14 +429,14 @@ const canDeleteAutomation = ['SUPER_ADMIN', 'FARM_OWNER'].includes(userRole);
                     </div>
 
                     <div>
-                      <label className="block text-xs text-gray-600 mb-1">Set State To</label>
+                      <label className="block text-xs text-gray-600 mb-1">{t('automation.setState', 'Set State To')}</label>
                       <select
                         value={formData.actionState}
                         onChange={(e) => setFormData({ ...formData, actionState: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
                       >
-                        <option value="ON">Turn ON</option>
-                        <option value="OFF">Turn OFF</option>
+                        <option value="ON">{t('actuators.turnOn')}</option>
+                        <option value="OFF">{t('actuators.turnOff')}</option>
                       </select>
                     </div>
                   </div>
@@ -443,7 +445,7 @@ const canDeleteAutomation = ['SUPER_ADMIN', 'FARM_OWNER'].includes(userRole);
                 {/* Cooldown */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Cooldown (minutes)
+                    {t('automation.cooldownMinutes', 'Cooldown (minutes)')}
                   </label>
                   <input
                     type="number"
@@ -454,7 +456,7 @@ const canDeleteAutomation = ['SUPER_ADMIN', 'FARM_OWNER'].includes(userRole);
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    Prevents rapid toggling. Rule won't trigger again within this period.
+                    {t('automation.cooldownDesc', "Prevents rapid toggling. Rule won't trigger again within this period.")}
                   </p>
                 </div>
 
@@ -465,13 +467,13 @@ const canDeleteAutomation = ['SUPER_ADMIN', 'FARM_OWNER'].includes(userRole);
                     onClick={() => setShowModal(false)}
                     className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
                   >
-                    Cancel
+                    {t('common.cancel')}
                   </button>
                   <button
                     type="submit"
                     className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
                   >
-                    {editingRule ? 'Update Rule' : 'Create Rule'}
+                    {editingRule ? t('automation.updateRule', 'Update Rule') : t('automation.createRule', 'Create Rule')}
                   </button>
                 </div>
               </form>

@@ -1,591 +1,336 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
-import { useParams, Link } from "react-router-dom";
-import { farmService } from "../services/farm.service";
-import WeatherWidget from "../components/weather/WeatherWidget";
-import { socketService } from "../services/socket.service";
-import { useAuthStore } from "../store/authStore";
-import { getRoleDisplayName, getRoleBadgeColor } from "../utils/permissions";
-import { FiSettings, FiUsers } from "react-icons/fi";
-import { FiZap } from "react-icons/fi";
-import {
-  FiThermometer,
-  FiDroplet,
-  FiSun,
-  FiWind,
-  FiPower,
-  FiRefreshCw,
-} from "react-icons/fi";
-import toast from "react-hot-toast";
-import { ChartBarIcon } from "@heroicons/react/24/outline";
+import { useEffect, useState } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { FiArrowLeft, FiPlus, FiTrash2, FiEdit2, FiMail, FiUsers, FiUserCheck } from 'react-icons/fi';
+import toast from 'react-hot-toast';
+import { useTranslation } from '../hooks/useTranslation';
+import { farmService } from '../services/farm.service';
+import { useAuthStore } from '../store/authStore';
+import { getRoleDisplayName, getRoleBadgeColor } from '../utils/permissions';
 
-// Sensor icon mapping
-const sensorIcons = {
-  TEMPERATURE: FiThermometer,
-  HUMIDITY: FiDroplet,
-  LIGHT: FiSun,
-  SOIL_MOISTURE: FiDroplet,
-  CO2: FiWind,
-};
+const FARM_ROLES = [
+  { value: 'MANAGER', label: 'Manager' },
+  { value: 'OPERATOR', label: 'Operator' },
+  { value: 'VIEWER', label: 'Viewer' }
+];
 
-// Sensor colors
-const sensorColors = {
-  TEMPERATURE: "text-orange-500 bg-orange-100",
-  HUMIDITY: "text-blue-500 bg-blue-100",
-  LIGHT: "text-yellow-500 bg-yellow-100",
-  SOIL_MOISTURE: "text-green-500 bg-green-100",
-  CO2: "text-purple-500 bg-purple-100",
-};
-
-export default function FarmDetail() {
+export default function TeamManagement() {
   const { farmId } = useParams();
-  const [dashboard, setDashboard] = useState(null);
+  const navigate = useNavigate();
+  const { t } = useTranslation();
+  const [team, setTeam] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [controlLoading, setControlLoading] = useState({});
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [inviteForm, setInviteForm] = useState({
+    email: '',
+    role: 'VIEWER'
+  });
+  const [inviting, setInviting] = useState(false);
 
-  // Get user from auth store
+  // Get user from store
   const user = useAuthStore((state) => state.user);
 
-  // Calculate permissions based on user role
-  const userRole = user?.role || "VIEWER";
-  const canControlActuators = [
-    "SUPER_ADMIN",
-    "FARM_OWNER",
-    "MANAGER",
-    "OPERATOR",
-  ].includes(userRole);
-  const canManageDevices = userRole === "SUPER_ADMIN";
-  const canViewAutomation = ["SUPER_ADMIN", "FARM_OWNER", "MANAGER"].includes(
-    userRole
-  );
-  const canViewTeam = ["SUPER_ADMIN", "FARM_OWNER", "MANAGER"].includes(
-    userRole
-  );
-  const canInviteUsers = ["SUPER_ADMIN", "FARM_OWNER"].includes(userRole);
+  // Calculate permissions
+  const userRole = user?.role || 'VIEWER';
+  const canViewTeam = ['SUPER_ADMIN', 'FARM_OWNER', 'MANAGER'].includes(userRole);
+  const canInviteUsers = ['SUPER_ADMIN', 'FARM_OWNER'].includes(userRole);
+  const canRemoveUsers = ['SUPER_ADMIN', 'FARM_OWNER'].includes(userRole);
+  const canChangeRoles = ['SUPER_ADMIN', 'FARM_OWNER'].includes(userRole);
 
-  const loadDashboard = useCallback(async () => {
-    setLoading(true);
+  useEffect(() => {
+    if (!canViewTeam) {
+      toast.error(t('messages.permissionDenied'));
+      navigate(`/farms/${farmId}`);
+      return;
+    }
+    loadTeam();
+  }, [farmId, canViewTeam, navigate, t]);
+
+  const loadTeam = async () => {
     try {
-      const data = await farmService.getDashboard(farmId);
-      setDashboard(data);
+      const data = await farmService.getFarmTeam(farmId);
+      setTeam(data.data?.members || []);
     } catch (error) {
-      toast.error(error?.message || "Failed to load farm data");
+      toast.error(t('team.loadFailed', 'Failed to load team members'));
     } finally {
       setLoading(false);
     }
-  }, [farmId]);
+  };
 
-  useEffect(() => {
-    loadDashboard();
-
-    // Connect WebSocket and subscribe
-    const token = localStorage.getItem("accessToken");
-
-    // ============================================================
-    // FIX: Define handlers BEFORE setupSocket() is called
-    // ============================================================
-
-    // Sensor update handler
-    const onSensor = (data) => {
-      console.log("📥 WebSocket sensor:update received:", data);
-      console.log("📥 deviceId:", data?.data?.deviceId);
-      console.log("📥 sensors:", data?.data?.sensors);
-
-      setDashboard((prev) => {
-        if (!prev) return prev;
-        try {
-          const deviceId = data?.data?.deviceId;
-          const updates = data?.data?.sensors;
-          
-          if (!deviceId || !Array.isArray(updates)) {
-            console.warn("⚠️ Invalid sensor data format:", { deviceId, updates });
-            return prev;
-          }
-
-          console.log(`📊 Updating ${updates.length} sensors for device ${deviceId}`);
-
-          const updatedDevices = prev.devices.map((device) => {
-            if (device.id !== deviceId) return device;
-            const updatedSensors = (device.sensors || []).map((sensor) => {
-              const u = updates.find((s) => s.sensorId === sensor.id);
-              if (u) {
-                console.log(`✅ Sensor ${sensor.sensorName}: ${sensor.lastReading} -> ${u.value}`);
-                return {
-                  ...sensor,
-                  lastReading: u.value,
-                  lastReadingAt: u.timestamp,
-                };
-              }
-              return sensor;
-            });
-            return { ...device, sensors: updatedSensors };
-          });
-
-          console.log("✅ Dashboard state updated with new sensor data");
-          return { ...prev, devices: updatedDevices };
-        } catch (err) {
-          console.error("❌ Error applying sensor update:", err, data);
-          return prev;
-        }
-      });
-    };
-
-    // Actuator update handler
-    const onActuator = (data) => {
-      console.log("📥 WebSocket actuator:update received:", data);
-
-      setDashboard((prev) => {
-        if (!prev) return prev;
-        const actuatorId = data?.actuatorId;
-        const state = data?.state;
-
-        if (!actuatorId) {
-          console.warn("⚠️ No actuatorId in data");
-          return prev;
-        }
-
-        console.log(`🔌 Updating actuator ${actuatorId} to state: ${state}`);
-
-        const updatedDevices = prev.devices.map((device) => ({
-          ...device,
-          actuators: (device.actuators || []).map((actuator) =>
-            actuator.id === actuatorId
-              ? { ...actuator, currentState: state }
-              : actuator
-          ),
-        }));
-
-        console.log(`✅ Dashboard updated: actuator ${actuatorId} -> ${state}`);
-        return { ...prev, devices: updatedDevices };
-      });
-    };
-
-    // Alert handler
-    const onAlert = (data) => {
-      console.log("📥 WebSocket alert:new received:", data);
-      try {
-        const title = data?.alert?.title ?? "Alert";
-        const message = data?.alert?.message ?? "";
-        toast.error(`🚨 ${title}: ${message}`);
-      } catch (err) {
-        console.error("❌ Malformed alert:", data);
-      }
-    };
-
-    // ============================================================
-    // Now setupSocket - handlers are defined above
-    // ============================================================
-    const setupSocket = async () => {
-      try {
-        await socketService.connect(token);
-        socketService.subscribeFarm(farmId);
-
-        // Set up listeners - handlers are now defined!
-        socketService.onSensorUpdate(onSensor);
-        socketService.onActuatorUpdate(onActuator);
-        socketService.onAlert(onAlert);
-        
-        console.log("✅ WebSocket handlers registered successfully");
-      } catch (err) {
-        console.error("❌ WebSocket setup failed:", err);
-      }
-    };
-
-    setupSocket();
-
-    // Cleanup
-    return () => {
-      socketService.unsubscribeFarm(farmId);
-      socketService.removeAllListeners();
-    };
-  }, [farmId, loadDashboard]);
-
-  const handleActuatorControl = async (actuatorId, currentState) => {
-    // Check permission first
-    if (!canControlActuators) {
-      toast.error("You don't have permission to control actuators");
+  const handleInvite = async (e) => {
+    e.preventDefault();
+    if (!inviteForm.email) {
+      toast.error(t('messages.validationError'));
       return;
     }
 
-    const newState = currentState === "ON" ? "OFF" : "ON";
-    setControlLoading((prev) => ({ ...prev, [actuatorId]: true }));
+    setInviting(true);
     try {
-      await farmService.controlActuator(actuatorId, newState);
-      toast.success(`Actuator turned ${newState}`);
-      // Note: UI will update via WebSocket callback, not here
+      await farmService.inviteToFarm(farmId, inviteForm);
+      toast.success(t('team.inviteSent', 'Invitation sent successfully'));
+      setShowInviteModal(false);
+      setInviteForm({ email: '', role: 'VIEWER' });
+      loadTeam();
     } catch (error) {
-      toast.error(error?.message || "Failed to control actuator");
+      toast.error(error.response?.data?.message || t('team.inviteFailed', 'Failed to send invitation'));
     } finally {
-      setControlLoading((prev) => ({ ...prev, [actuatorId]: false }));
+      setInviting(false);
     }
   };
 
-  const allSensors = useMemo(() => {
-    return (dashboard?.devices || []).flatMap((d) =>
-      (d.sensors || []).map((s) => ({ ...s, deviceName: d.deviceName }))
-    );
-  }, [dashboard]);
+  const handleRemoveMember = async (memberId, memberName) => {
+    if (!canRemoveUsers) {
+      toast.error(t('messages.permissionDenied'));
+      return;
+    }
+    if (!confirm(t('team.confirmRemove', `Are you sure you want to remove ${memberName} from the team?`))) return;
 
-  const allActuators = useMemo(() => {
-    return (dashboard?.devices || []).flatMap((d) =>
-      (d.actuators || []).map((a) => ({
-        ...a,
-        deviceName: d.deviceName,
-        deviceMac: d.macAddress,
-      }))
-    );
-  }, [dashboard]);
+    try {
+      await farmService.removeFromFarm(farmId, memberId);
+      toast.success(t('team.memberRemoved', 'Team member removed'));
+      loadTeam();
+    } catch (error) {
+      toast.error(t('team.removeFailed', 'Failed to remove team member'));
+    }
+  };
+
+  const handleRoleChange = async (memberId, newRole) => {
+    if (!canChangeRoles) {
+      toast.error(t('messages.permissionDenied'));
+      return;
+    }
+
+    try {
+      await farmService.updateMemberRole(farmId, memberId, newRole);
+      toast.success(t('team.roleUpdated', 'Role updated successfully'));
+      loadTeam();
+    } catch (error) {
+      toast.error(t('team.roleUpdateFailed', 'Failed to update role'));
+    }
+  };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600" />
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
       </div>
     );
   }
-
-  if (!dashboard) {
-    return <div className="text-center text-gray-500">Farm not found</div>;
-  }
-
-  // Get user's role for this farm
-  const farmUserRole = dashboard.farm?.userRole || userRole;
 
   return (
     <div>
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
-        <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold text-gray-800">
-              {dashboard.farm?.name}
-            </h1>
-            {/* Role Badge */}
-            <span
-              className={`px-2 py-1 text-xs font-semibold rounded-full ${getRoleBadgeColor(
-                farmUserRole
-              )}`}
-            >
-              {getRoleDisplayName(farmUserRole)}
-            </span>
-          </div>
-          <p className="text-gray-500">
-            {dashboard.farm?.location || dashboard.farm?.farmType}
-            {dashboard.farm?.owner && userRole === "SUPER_ADMIN" && (
-              <span className="ml-2 text-sm">
-                • Owner: {dashboard.farm.owner.fullName}
-              </span>
-            )}
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          {/* History - visible to all */}
-          <Link
-            to={`/farms/${farmId}/history`}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          >
-            <ChartBarIcon className="w-5 h-5" />
-            View History
+        <div className="flex items-center gap-4">
+          <Link to={`/farms/${farmId}`} className="p-2 hover:bg-gray-100 rounded-lg">
+            <FiArrowLeft size={20} />
           </Link>
-
-          {/* Automation - only for users with permission */}
-          {canViewAutomation && (
-            <Link
-              to={`/farms/${farmId}/automation`}
-              className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
-            >
-              <FiZap className="w-5 h-5" />
-              Automation
-            </Link>
-          )}
-
-          {/* Team - only for OWNER and above */}
-          {canViewTeam && (
-            <Link
-              to={`/farms/${farmId}/team`}
-              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
-            >
-              <FiUsers className="w-5 h-5" />
-              Team
-            </Link>
-          )}
-
-          {/* Devices - Super Admin only */}
-          {canManageDevices && (
-            <Link
-              to={`/farms/${farmId}/devices`}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
-            >
-              <FiSettings className="w-5 h-5" />
-              Devices
-            </Link>
-          )}
-
+          <div>
+            <h1 className="text-2xl font-bold text-gray-800">{t('team.title')}</h1>
+            <p className="text-gray-500 text-sm">
+              {canInviteUsers 
+                ? t('team.subtitle', 'Manage team members and permissions')
+                : t('team.viewOnly', 'View team members')
+              }
+            </p>
+          </div>
+        </div>
+        {canInviteUsers && (
           <button
-            type="button"
-            onClick={loadDashboard}
-            className="flex items-center gap-2 text-gray-600 hover:text-primary-600"
+            onClick={() => setShowInviteModal(true)}
+            className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
           >
-            <FiRefreshCw size={18} />
-            Refresh
+            <FiPlus size={18} />
+            {t('team.addMember')}
           </button>
-        </div>
+        )}
       </div>
 
-      {/* TOP STATS (full width) */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-        <div className="bg-white rounded-lg shadow p-4">
-          <p className="text-sm text-gray-500">Total Devices</p>
-          <p className="text-2xl font-bold">
-            {dashboard.stats?.totalDevices ?? 0}
+      {/* Team List */}
+      {team.length === 0 ? (
+        <div className="bg-white rounded-xl shadow p-12 text-center">
+          <FiUsers className="mx-auto text-gray-300 mb-4" size={64} />
+          <h2 className="text-xl font-semibold text-gray-700 mb-2">{t('team.noMembers', 'No team members yet')}</h2>
+          <p className="text-gray-500 mb-6">
+            {canInviteUsers 
+              ? t('team.noMembersDesc', 'Invite team members to collaborate on this farm')
+              : t('team.noMembersViewOnly', 'No team members have been added to this farm')
+            }
           </p>
-        </div>
-        <div className="bg-white rounded-lg shadow p-4">
-          <p className="text-sm text-gray-500">Online</p>
-          <p className="text-2xl font-bold text-green-600">
-            {dashboard.stats?.onlineDevices ?? 0}
-          </p>
-        </div>
-        <div className="bg-white rounded-lg shadow p-4">
-          <p className="text-sm text-gray-500">Sensors</p>
-          <p className="text-2xl font-bold">
-            {dashboard.stats?.totalSensors ?? 0}
-          </p>
-        </div>
-        <div className="bg-white rounded-lg shadow p-4">
-          <p className="text-sm text-gray-500">Actuators</p>
-          <p className="text-2xl font-bold">
-            {dashboard.stats?.totalActuators ?? 0}
-          </p>
-        </div>
-        <div className="bg-white rounded-lg shadow p-4">
-          <p className="text-sm text-gray-500">Team Members</p>
-          <p className="text-2xl font-bold">
-            {dashboard.stats?.teamMembers ?? 0}
-          </p>
-        </div>
-      </div>
-
-      {/* MAIN GRID: left = content, right = weather sidebar */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Left column: main content */}
-        <div className="lg:col-span-3">
-          {/* Sensor Readings */}
-          <div className="mb-6">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">
-              📊 Sensor Readings
-            </h2>
-
-            {allSensors.length === 0 ? (
-              <div className="bg-white rounded-lg shadow p-6 text-center text-gray-500">
-                No sensors configured
-                {canManageDevices && (
-                  <div className="mt-2">
-                    <Link
-                      to={`/farms/${farmId}/devices`}
-                      className="text-blue-600 hover:underline"
-                    >
-                      Add sensors →
-                    </Link>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {allSensors.map((sensor) => {
-                  const Icon = sensorIcons[sensor.sensorType] || FiThermometer;
-                  const colorClass =
-                    sensorColors[sensor.sensorType] ||
-                    "text-gray-500 bg-gray-100";
-                  const readingValid =
-                    sensor.lastReading !== null &&
-                    !isNaN(parseFloat(sensor.lastReading));
-                  const reading = readingValid
-                    ? `${parseFloat(sensor.lastReading).toFixed(1)}${
-                        sensor.unit ?? ""
-                      }`
-                    : "--";
-
-                  return (
-                    <div
-                      key={sensor.id}
-                      className="bg-white rounded-lg shadow p-4"
-                    >
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className={`p-2 rounded-lg ${colorClass}`}>
-                          <Icon size={20} />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-800">
-                            {sensor.sensorName}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {sensor.deviceName}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="text-3xl font-bold text-gray-800">
-                        {reading}
-                      </div>
-
-                      {sensor.lastReadingAt && (
-                        <p className="text-xs text-gray-400 mt-1">
-                          Updated:{" "}
-                          {new Date(sensor.lastReadingAt).toLocaleTimeString()}
-                        </p>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* Actuator Controls */}
-          <div className="mb-6">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">
-              ⚡ Actuator Controls
-              {!canControlActuators && (
-                <span className="ml-2 text-sm font-normal text-gray-500">
-                  (View only)
-                </span>
-              )}
-            </h2>
-
-            {allActuators.length === 0 ? (
-              <div className="bg-white rounded-lg shadow p-6 text-center text-gray-500">
-                No actuators configured
-                {canManageDevices && (
-                  <div className="mt-2">
-                    <Link
-                      to={`/farms/${farmId}/devices`}
-                      className="text-blue-600 hover:underline"
-                    >
-                      Add actuators →
-                    </Link>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {allActuators.map((actuator) => (
-                  <div
-                    key={actuator.id}
-                    className="bg-white rounded-lg shadow p-4"
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <div>
-                        <p className="font-medium text-gray-800">
-                          {actuator.actuatorName}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {actuator.actuatorType}
-                        </p>
-                      </div>
-                      <span
-                        className={`w-3 h-3 rounded-full ${
-                          actuator.currentState === "ON"
-                            ? "bg-green-500"
-                            : "bg-gray-300"
-                        }`}
-                      />
-                    </div>
-
-                    {canControlActuators ? (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          handleActuatorControl(
-                            actuator.id,
-                            actuator.currentState
-                          )
-                        }
-                        disabled={!!controlLoading[actuator.id]}
-                        className={`
-                          w-full py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors
-                          ${
-                            actuator.currentState === "ON"
-                              ? "bg-red-100 text-red-700 hover:bg-red-200"
-                              : "bg-green-100 text-green-700 hover:bg-green-200"
-                          }
-                          disabled:opacity-50
-                        `}
-                      >
-                        {controlLoading[actuator.id] ? (
-                          <FiRefreshCw className="animate-spin" size={18} />
-                        ) : (
-                          <FiPower size={18} />
-                        )}
-                        {actuator.currentState === "ON"
-                          ? "Turn OFF"
-                          : "Turn ON"}
-                      </button>
-                    ) : (
-                      <div
-                        className={`
-                        w-full py-2 px-4 rounded-lg text-center font-medium
-                        ${
-                          actuator.currentState === "ON"
-                            ? "bg-green-100 text-green-700"
-                            : "bg-gray-100 text-gray-600"
-                        }
-                      `}
-                      >
-                        {actuator.currentState}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Recent Alerts */}
-          {dashboard.recentAlerts?.length > 0 && (
-            <div className="mb-6">
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">
-                🚨 Recent Alerts
-              </h2>
-              <div className="bg-white rounded-lg shadow divide-y">
-                {dashboard.recentAlerts.slice(0, 5).map((alert) => (
-                  <div key={alert.id} className="p-4 flex items-center gap-4">
-                    <span
-                      className={`px-2 py-1 text-xs rounded ${
-                        alert.severity === "CRITICAL"
-                          ? "bg-red-100 text-red-700"
-                          : "bg-yellow-100 text-yellow-700"
-                      }`}
-                    >
-                      {alert.severity}
-                    </span>
-                    <div className="flex-1">
-                      <p className="font-medium text-gray-800">{alert.title}</p>
-                      <p className="text-sm text-gray-500">{alert.message}</p>
-                    </div>
-                    <p className="text-xs text-gray-400">
-                      {new Date(alert.createdAt).toLocaleString()}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
+          {canInviteUsers && (
+            <button
+              onClick={() => setShowInviteModal(true)}
+              className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700"
+            >
+              {t('team.inviteFirst', 'Invite First Member')}
+            </button>
           )}
         </div>
+      ) : (
+        <div className="bg-white rounded-xl shadow overflow-hidden">
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {t('team.member', 'Member')}
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {t('team.role')}
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {t('team.joinedAt', 'Joined')}
+                </th>
+                {(canChangeRoles || canRemoveUsers) && (
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {t('common.actions')}
+                  </th>
+                )}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {team.map((member) => (
+                <tr key={member.id}>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                        <span className="text-gray-600 font-medium">
+                          {member.user?.fullName?.charAt(0) || 'U'}
+                        </span>
+                      </div>
+                      <div className="ml-4">
+                        <div className="text-sm font-medium text-gray-900">
+                          {member.user?.fullName || t('team.unknownUser', 'Unknown User')}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          {member.user?.email}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {canChangeRoles && member.role !== 'OWNER' ? (
+                      <select
+                        value={member.role}
+                        onChange={(e) => handleRoleChange(member.id, e.target.value)}
+                        className="text-sm border border-gray-300 rounded-lg px-2 py-1"
+                      >
+                        {FARM_ROLES.map((role) => (
+                          <option key={role.value} value={role.value}>
+                            {t(`team.roles.${role.value}`, role.label)}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getRoleBadgeColor(member.role)}`}>
+                        {t(`team.roles.${member.role}`, getRoleDisplayName(member.role))}
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {new Date(member.invitedAt || member.createdAt).toLocaleDateString()}
+                  </td>
+                  {(canChangeRoles || canRemoveUsers) && (
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      {canRemoveUsers && member.role !== 'OWNER' && (
+                        <button
+                          onClick={() => handleRemoveMember(member.id, member.user?.fullName)}
+                          className="text-red-600 hover:text-red-900"
+                          title={t('team.remove', 'Remove')}
+                        >
+                          <FiTrash2 size={18} />
+                        </button>
+                      )}
+                    </td>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
-        {/* Right column: weather sidebar */}
-        <aside className="lg:col-span-1">
-          <div className="sticky top-20">
-            <div className="overflow-hidden">
-              <WeatherWidget
-                farmId={farmId}
-                showForecast={true}
-                showRecommendations={true}
-              />
+      {/* Invite Modal */}
+      {showInviteModal && canInviteUsers && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+            <div className="p-6">
+              <h2 className="text-xl font-bold text-gray-800 mb-4">
+                {t('team.inviteMember', 'Invite Team Member')}
+              </h2>
+
+              <form onSubmit={handleInvite} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {t('auth.email')} *
+                  </label>
+                  <div className="relative">
+                    <FiMail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="email"
+                      value={inviteForm.email}
+                      onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
+                      placeholder={t('team.emailPlaceholder', 'Enter email address')}
+                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {t('team.role')} *
+                  </label>
+                  <select
+                    value={inviteForm.role}
+                    onChange={(e) => setInviteForm({ ...inviteForm, role: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                  >
+                    {FARM_ROLES.map((role) => (
+                      <option key={role.value} value={role.value}>
+                        {t(`team.roles.${role.value}`, role.label)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <h4 className="text-sm font-medium text-gray-700 mb-2">{t('team.rolePermissions', 'Role Permissions')}:</h4>
+                  <ul className="text-xs text-gray-600 space-y-1">
+                    <li>• <strong>{t('team.roles.MANAGER', 'Manager')}</strong>: {t('team.managerDesc', 'Can manage automation, view team')}</li>
+                    <li>• <strong>{t('team.roles.OPERATOR', 'Operator')}</strong>: {t('team.operatorDesc', 'Can control actuators')}</li>
+                    <li>• <strong>{t('team.roles.VIEWER', 'Viewer')}</strong>: {t('team.viewerDesc', 'Can only view data')}</li>
+                  </ul>
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowInviteModal(false)}
+                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                  >
+                    {t('common.cancel')}
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={inviting}
+                    className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {inviting ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                        {t('team.sending', 'Sending...')}
+                      </>
+                    ) : (
+                      <>
+                        <FiMail size={18} />
+                        {t('team.sendInvite', 'Send Invite')}
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
-        </aside>
-      </div>
+        </div>
+      )}
     </div>
   );
 }

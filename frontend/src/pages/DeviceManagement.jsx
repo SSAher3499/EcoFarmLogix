@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from '../hooks/useTranslation';
 import { useParams, Link } from 'react-router-dom';
 import { 
   FiArrowLeft, FiPlus, FiTrash2, FiEdit2, FiCpu, 
@@ -8,7 +9,7 @@ import {
 import toast from 'react-hot-toast';
 import deviceService from '../services/device.service';
 
-// Device Types
+// {t('devices.deviceType')}s
 const DEVICE_TYPES = [
   { value: 'GATEWAY', label: 'Gateway (Raspberry Pi)' },
   { value: 'SENSOR_NODE', label: 'Sensor Node' },
@@ -94,6 +95,7 @@ const PARITY_OPTIONS = [
 
 export default function DeviceManagement() {
   const { farmId } = useParams();
+  const { t } = useTranslation();
   const [devices, setDevices] = useState([]);
   const [loading, setLoading] = useState(true);
   
@@ -168,7 +170,7 @@ export default function DeviceManagement() {
       const data = await deviceService.getFarmDevices(farmId);
       setDevices(data.data.devices);
     } catch (error) {
-      toast.error('Failed to load devices');
+      toast.error(t('messages.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -181,13 +183,13 @@ export default function DeviceManagement() {
   const handleAddDevice = async (e) => {
     e.preventDefault();
     if (!deviceForm.macAddress || !deviceForm.deviceName) {
-      toast.error('Please fill all required fields');
+      toast.error(t('messages.validationError'));
       return;
     }
 
     try {
       await deviceService.registerDevice(farmId, deviceForm);
-      toast.success('Device registered successfully');
+      toast.success(t('messages.deviceAdded'));
       setShowDeviceModal(false);
       setDeviceForm({ macAddress: '', deviceName: '', deviceType: 'GATEWAY' });
       loadDevices();
@@ -201,10 +203,10 @@ export default function DeviceManagement() {
 
     try {
       await deviceService.deleteDevice(deviceId);
-      toast.success('Device deleted');
+      toast.success(t('messages.deleteSuccess'));
       loadDevices();
     } catch (error) {
-      toast.error('Failed to delete device');
+      toast.error(t('messages.deleteFailed'));
     }
   };
 
@@ -277,7 +279,7 @@ export default function DeviceManagement() {
       };
       
       await deviceService.addSensor(selectedDevice.id, data);
-      toast.success('Sensor added successfully');
+      toast.success(t('messages.sensorAdded'));
       setShowSensorModal(false);
       loadDevices();
     } catch (error) {
@@ -290,7 +292,7 @@ export default function DeviceManagement() {
 
     try {
       await deviceService.deleteSensor(sensorId);
-      toast.success('Sensor deleted');
+      toast.success(t('messages.deleteSuccess'));
       loadDevices();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to delete sensor');
@@ -345,7 +347,7 @@ export default function DeviceManagement() {
       };
       
       await deviceService.addActuator(selectedDevice.id, data);
-      toast.success('Actuator added successfully');
+      toast.success(t('messages.actuatorAdded'));
       setShowActuatorModal(false);
       loadDevices();
     } catch (error) {
@@ -358,7 +360,7 @@ export default function DeviceManagement() {
 
     try {
       await deviceService.deleteActuator(actuatorId);
-      toast.success('Actuator deleted');
+      toast.success(t('messages.deleteSuccess'));
       loadDevices();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to delete actuator');
@@ -391,7 +393,7 @@ export default function DeviceManagement() {
     
     try {
       await deviceService.updateSerialConfig(selectedDevice.id, serialConfigForm);
-      toast.success('Serial port configuration saved');
+      toast.success(t('messages.configSaved'));
       setShowSerialConfigModal(false);
       loadDevices();
     } catch (error) {
@@ -423,8 +425,8 @@ export default function DeviceManagement() {
             <FiArrowLeft size={24} />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-gray-800">Device Management</h1>
-            <p className="text-sm text-gray-500">Configure devices, sensors, and actuators with RS485 Modbus support</p>
+            <h1 className="text-2xl font-bold text-gray-800">{t('devices.title')}</h1>
+            <p className="text-sm text-gray-500">{t('devices.subtitle')}</p>
           </div>
         </div>
         <button
@@ -432,7 +434,7 @@ export default function DeviceManagement() {
           className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
         >
           <FiPlus size={18} />
-          Add Device
+          {t('devices.addDevice')}
         </button>
       </div>
 
@@ -440,13 +442,13 @@ export default function DeviceManagement() {
       {devices.length === 0 ? (
         <div className="bg-white rounded-xl shadow-lg p-12 text-center">
           <FiCpu className="mx-auto text-gray-300 mb-4" size={64} />
-          <h3 className="text-xl font-semibold text-gray-600 mb-2">No Devices Yet</h3>
-          <p className="text-gray-500 mb-4">Register your first device to start monitoring</p>
+          <h3 className="text-xl font-semibold text-gray-600 mb-2">{t('devices.noDevices')}</h3>
+          <p className="text-gray-500 mb-4">{t('devices.noDevicesDesc')}</p>
           <button
             onClick={() => setShowDeviceModal(true)}
             className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
           >
-            Add First Device
+            {t('devices.addFirst', 'Add First Device')}
           </button>
         </div>
       ) : (
@@ -622,12 +624,12 @@ export default function DeviceManagement() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
             <div className="p-6">
-              <h2 className="text-xl font-bold text-gray-800 mb-4">Register New Device</h2>
+              <h2 className="text-xl font-bold text-gray-800 mb-4">{t('devices.registerNew', 'Register New Device')}</h2>
               
               <form onSubmit={handleAddDevice} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    MAC Address *
+                    {t('devices.macAddress')} *
                   </label>
                   <input
                     type="text"
@@ -641,7 +643,7 @@ export default function DeviceManagement() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Device Name *
+                    {t('devices.deviceName')} *
                   </label>
                   <input
                     type="text"
@@ -654,7 +656,7 @@ export default function DeviceManagement() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Device Type
+                    {t('devices.deviceType')}
                   </label>
                   <select
                     value={deviceForm.deviceType}
@@ -695,7 +697,7 @@ export default function DeviceManagement() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto my-auto">
             <div className="p-6">
-              <h2 className="text-xl font-bold text-gray-800 mb-1">Add Sensor</h2>
+              <h2 className="text-xl font-bold text-gray-800 mb-1">{t('sensors.addSensor')}</h2>
               <p className="text-sm text-gray-500 mb-4">to {selectedDevice?.deviceName}</p>
               
               <form onSubmit={handleAddSensor} className="space-y-6">
@@ -1007,7 +1009,7 @@ export default function DeviceManagement() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="p-6">
-              <h2 className="text-xl font-bold text-gray-800 mb-1">Add Actuator</h2>
+              <h2 className="text-xl font-bold text-gray-800 mb-1">{t('actuators.addActuator')}</h2>
               <p className="text-sm text-gray-500 mb-4">to {selectedDevice?.deviceName}</p>
               
               <form onSubmit={handleAddActuator} className="space-y-4">
@@ -1143,7 +1145,7 @@ export default function DeviceManagement() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="p-6">
-              <h2 className="text-xl font-bold text-gray-800 mb-1">Serial Port Configuration</h2>
+              <h2 className="text-xl font-bold text-gray-800 mb-1">{t('serial.title')}</h2>
               <p className="text-sm text-gray-500 mb-4">RS485/Modbus settings for {selectedDevice?.deviceName}</p>
               
               <form onSubmit={handleSaveSerialConfig} className="space-y-4">

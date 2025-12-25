@@ -344,6 +344,26 @@ export default {
     configSaved: 'कॉन्फिगरेशन यशस्वीरित्या जतन केले',
   },
 
+  // History
+  history: {
+    title: 'ऐतिहासिक डेटा',
+    timeRange: 'वेळ श्रेणी',
+    exportCSV: 'CSV निर्यात करा',
+    exporting: 'निर्यात होत आहे...',
+    exportFailed: 'डेटा निर्यात करण्यात अयशस्वी',
+    tryAgain: 'पुन्हा प्रयत्न करा',
+    noData: 'सेन्सर डेटा उपलब्ध नाही',
+    noDataDesc: 'चार्ट पाहण्यासाठी सेन्सर जोडा आणि डेटा गोळा करा',
+    statistics: 'आकडेवारी',
+  },
+
+  // Stats
+  stats: {
+    totalDevices: 'एकूण उपकरणे',
+    onlineDevices: 'ऑनलाइन',
+    teamMembers: 'टीम सदस्य',
+  },
+
   // Language
   language: {
     title: 'भाषा',

@@ -5,6 +5,7 @@ import {
   ArrowDownTrayIcon,
   ChartBarIcon 
 } from '@heroicons/react/24/outline';
+import { useTranslation } from '../hooks/useTranslation';
 import historyService from '../services/history.service';
 import SensorChart from '../components/charts/SensorChart';
 import StatsCard from '../components/charts/StatsCard';
@@ -23,6 +24,7 @@ const SENSOR_COLORS = {
 
 const FarmHistory = () => {
   const { farmId } = useParams();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [timeRange, setTimeRange] = useState('24h');
@@ -40,7 +42,7 @@ const FarmHistory = () => {
       const response = await historyService.getFarmHistory(farmId, timeRange);
       setFarmData(response.data);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to load history');
+      setError(err.response?.data?.message || t('messages.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -51,7 +53,7 @@ const FarmHistory = () => {
       setExporting(true);
       await historyService.exportFarmHistory(farmId, timeRange);
     } catch (err) {
-      alert('Failed to export data');
+      alert(t('history.exportFailed', 'Failed to export data'));
     } finally {
       setExporting(false);
     }
@@ -73,7 +75,7 @@ const FarmHistory = () => {
           onClick={fetchHistory}
           className="mt-2 text-sm underline"
         >
-          Try again
+          {t('history.tryAgain', 'Try again')}
         </button>
       </div>
     );
@@ -93,7 +95,7 @@ const FarmHistory = () => {
           <div>
             <h1 className="text-2xl font-bold text-gray-900">
               <ChartBarIcon className="w-7 h-7 inline mr-2 text-green-600" />
-              Historical Data
+              {t('history.title', 'Historical Data')}
             </h1>
             <p className="text-gray-500">{farmData?.farm?.name}</p>
           </div>
@@ -104,13 +106,13 @@ const FarmHistory = () => {
           className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
         >
           <ArrowDownTrayIcon className="w-5 h-5" />
-          {exporting ? 'Exporting...' : 'Export CSV'}
+          {exporting ? t('history.exporting', 'Exporting...') : t('history.exportCSV', 'Export CSV')}
         </button>
       </div>
 
       {/* Time Range Selector */}
       <div className="bg-white p-4 rounded-lg shadow">
-        <h3 className="text-sm font-medium text-gray-700 mb-3">Time Range</h3>
+        <h3 className="text-sm font-medium text-gray-700 mb-3">{t('history.timeRange', 'Time Range')}</h3>
         <TimeRangeSelector selected={timeRange} onChange={setTimeRange} />
       </div>
 
@@ -118,9 +120,9 @@ const FarmHistory = () => {
       {farmData?.sensors?.length === 0 ? (
         <div className="bg-white p-8 rounded-lg shadow text-center">
           <ChartBarIcon className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-          <p className="text-gray-500">No sensor data available</p>
+          <p className="text-gray-500">{t('history.noData', 'No sensor data available')}</p>
           <p className="text-sm text-gray-400 mt-1">
-            Add sensors and collect some data to see charts
+            {t('history.noDataDesc', 'Add sensors and collect some data to see charts')}
           </p>
         </div>
       ) : (
@@ -132,7 +134,7 @@ const FarmHistory = () => {
                 <h3 className="text-lg font-semibold mb-4">
                   {sensorData.sensor.name}
                   <span className="text-sm font-normal text-gray-500 ml-2">
-                    ({sensorData.sensor.type})
+                    ({t(`sensors.types.${sensorData.sensor.type}`, sensorData.sensor.type)})
                   </span>
                 </h3>
                 <SensorChart
@@ -146,7 +148,7 @@ const FarmHistory = () => {
               {/* Stats */}
               <div className="lg:w-64">
                 <StatsCard
-                  title={`${timeRange} Statistics`}
+                  title={`${timeRange} ${t('history.statistics', 'Statistics')}`}
                   stats={sensorData.stats}
                   unit={sensorData.sensor.unit}
                   color={SENSOR_COLORS[sensorData.sensor.type] || 'green'}

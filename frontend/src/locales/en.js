@@ -344,6 +344,26 @@ export default {
     configSaved: 'Configuration saved successfully',
   },
 
+  // History
+  history: {
+    title: 'Historical Data',
+    timeRange: 'Time Range',
+    exportCSV: 'Export CSV',
+    exporting: 'Exporting...',
+    exportFailed: 'Failed to export data',
+    tryAgain: 'Try again',
+    noData: 'No sensor data available',
+    noDataDesc: 'Add sensors and collect some data to see charts',
+    statistics: 'Statistics',
+  },
+
+  // Stats
+  stats: {
+    totalDevices: 'Total Devices',
+    onlineDevices: 'Online',
+    teamMembers: 'Team Members',
+  },
+
   // Language
   language: {
     title: 'Language',
