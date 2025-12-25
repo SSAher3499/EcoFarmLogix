@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { FiArrowLeft, FiPlus, FiTrash2, FiEdit2, FiMail, FiUsers, FiUserCheck } from 'react-icons/fi';
+import { FiArrowLeft, FiPlus, FiTrash2, FiMail, FiUsers } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import { useTranslation } from '../hooks/useTranslation';
-import { farmService } from '../services/farm.service';
+import teamService from '../services/team.service';
 import { useAuthStore } from '../store/authStore';
 import { getRoleDisplayName, getRoleBadgeColor } from '../utils/permissions';
 
@@ -47,8 +47,8 @@ export default function TeamManagement() {
 
   const loadTeam = async () => {
     try {
-      const data = await farmService.getFarmTeam(farmId);
-      setTeam(data.data?.members || []);
+      const data = await teamService.getTeam(farmId);
+      setTeam(data.data?.teamMembers || []);
     } catch (error) {
       toast.error(t('team.loadFailed', 'Failed to load team members'));
     } finally {
@@ -65,13 +65,13 @@ export default function TeamManagement() {
 
     setInviting(true);
     try {
-      await farmService.inviteToFarm(farmId, inviteForm);
-      toast.success(t('team.inviteSent', 'Invitation sent successfully'));
+      await teamService.addTeamMember(farmId, inviteForm);
+      toast.success(t('team.inviteSent', 'Team member added successfully'));
       setShowInviteModal(false);
       setInviteForm({ email: '', role: 'VIEWER' });
       loadTeam();
     } catch (error) {
-      toast.error(error.response?.data?.message || t('team.inviteFailed', 'Failed to send invitation'));
+      toast.error(error.response?.data?.message || t('team.inviteFailed', 'Failed to add team member'));
     } finally {
       setInviting(false);
     }
@@ -85,7 +85,7 @@ export default function TeamManagement() {
     if (!confirm(t('team.confirmRemove', `Are you sure you want to remove ${memberName} from the team?`))) return;
 
     try {
-      await farmService.removeFromFarm(farmId, memberId);
+      await teamService.removeTeamMember(farmId, memberId);
       toast.success(t('team.memberRemoved', 'Team member removed'));
       loadTeam();
     } catch (error) {
@@ -100,7 +100,7 @@ export default function TeamManagement() {
     }
 
     try {
-      await farmService.updateMemberRole(farmId, memberId, newRole);
+      await teamService.updateTeamMember(farmId, memberId, newRole);
       toast.success(t('team.roleUpdated', 'Role updated successfully'));
       loadTeam();
     } catch (error) {
@@ -254,7 +254,7 @@ export default function TeamManagement() {
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
             <div className="p-6">
               <h2 className="text-xl font-bold text-gray-800 mb-4">
-                {t('team.inviteMember', 'Invite Team Member')}
+                {t('team.inviteMember', 'Add Team Member')}
               </h2>
 
               <form onSubmit={handleInvite} className="space-y-4">
@@ -316,12 +316,12 @@ export default function TeamManagement() {
                     {inviting ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                        {t('team.sending', 'Sending...')}
+                        {t('team.sending', 'Adding...')}
                       </>
                     ) : (
                       <>
-                        <FiMail size={18} />
-                        {t('team.sendInvite', 'Send Invite')}
+                        <FiPlus size={18} />
+                        {t('team.sendInvite', 'Add Member')}
                       </>
                     )}
                   </button>
