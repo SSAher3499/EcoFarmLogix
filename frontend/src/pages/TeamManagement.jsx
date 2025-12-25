@@ -201,15 +201,15 @@ export default function TeamManagement() {
                     <div className="flex items-center">
                       <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
                         <span className="text-gray-600 font-medium">
-                          {member.user?.fullName?.charAt(0) || 'U'}
+                          {(member.fullName || member.user?.fullName)?.charAt(0) || 'U'}
                         </span>
                       </div>
                       <div className="ml-4">
                         <div className="text-sm font-medium text-gray-900">
-                          {member.user?.fullName || t('team.unknownUser', 'Unknown User')}
+                          {member.fullName || member.user?.fullName || t('team.unknownUser', 'Unknown User')}
                         </div>
                         <div className="text-sm text-gray-500">
-                          {member.user?.email}
+                          {member.email || member.user?.email}
                         </div>
                       </div>
                     </div>
@@ -240,7 +240,7 @@ export default function TeamManagement() {
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       {canRemoveUsers && member.role !== 'OWNER' && (
                         <button
-                          onClick={() => handleRemoveMember(member.id, member.user?.fullName)}
+                          onClick={() => handleRemoveMember(member.id, member.fullName || member.user?.fullName)}
                           className="text-red-600 hover:text-red-900"
                           title={t('team.remove', 'Remove')}
                         >
