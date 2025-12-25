@@ -1,0 +1,104 @@
+{
+  "common": {
+    "refresh": "Refresh",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "close": "Close",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "submit": "Submit",
+    "search": "Search",
+    "filter": "Filter",
+    "export": "Export",
+    "import": "Import"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "farms": "Farms",
+    "devices": "Devices",
+    "history": "History",
+    "automation": "Automation",
+    "team": "Team",
+    "settings": "Settings",
+    "logout": "Logout"
+  },
+  "farm": {
+    "title": "Farm Dashboard",
+    "viewHistory": "View History",
+    "automation": "Automation",
+    "team": "Team",
+    "devices": "Devices",
+    "owner": "Owner",
+    "location": "Location",
+    "farmType": "Farm Type",
+    "notFound": "Farm not found"
+  },
+  "stats": {
+    "totalDevices": "Total Devices",
+    "online": "Online",
+    "sensors": "Sensors",
+    "actuators": "Actuators",
+    "teamMembers": "Team Members"
+  },
+  "sensor": {
+    "readings": "Sensor Readings",
+    "noSensorsConfigured": "No sensors configured",
+    "addSensors": "Add sensors →",
+    "updated": "Updated",
+    "temperature": "Temperature",
+    "humidity": "Humidity",
+    "light": "Light",
+    "soilMoisture": "Soil Moisture",
+    "co2": "CO2"
+  },
+  "actuator": {
+    "controls": "Actuator Controls",
+    "viewOnly": "(View only)",
+    "noActuatorsConfigured": "No actuators configured",
+    "addActuators": "Add actuators →",
+    "turnOn": "Turn ON",
+    "turnOff": "Turn OFF",
+    "on": "ON",
+    "off": "OFF",
+    "controlSuccess": "Actuator turned {{state}}",
+    "controlError": "Failed to control actuator",
+    "noPermission": "You don't have permission to control actuators"
+  },
+  "alert": {
+    "recentAlerts": "Recent Alerts",
+    "severity": {
+      "critical": "CRITICAL",
+      "warning": "WARNING",
+      "info": "INFO"
+    }
+  },
+  "roles": {
+    "superAdmin": "Super Admin",
+    "farmOwner": "Farm Owner",
+    "manager": "Manager",
+    "operator": "Operator",
+    "viewer": "Viewer"
+  },
+  "weather": {
+    "currentWeather": "Current Weather",
+    "forecast": "Forecast",
+    "recommendations": "Recommendations",
+    "temperature": "Temperature",
+    "humidity": "Humidity",
+    "windSpeed": "Wind Speed",
+    "conditions": "Conditions"
+  },
+  "errors": {
+    "loadFailed": "Failed to load farm data",
+    "networkError": "Network error occurred",
+    "unauthorized": "You are not authorized to perform this action",
+    "serverError": "Server error occurred"
+  }
+}

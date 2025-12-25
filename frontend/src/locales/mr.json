@@ -1,0 +1,104 @@
+{
+  "common": {
+    "refresh": "रीफ्रेश करा",
+    "loading": "लोड होत आहे...",
+    "error": "त्रुटी",
+    "success": "यशस्वी",
+    "save": "जतन करा",
+    "cancel": "रद्द करा",
+    "delete": "हटवा",
+    "edit": "संपादित करा",
+    "add": "जोडा",
+    "close": "बंद करा",
+    "confirm": "पुष्टी करा",
+    "back": "मागे",
+    "next": "पुढे",
+    "submit": "सबमिट करा",
+    "search": "शोधा",
+    "filter": "फिल्टर करा",
+    "export": "निर्यात करा",
+    "import": "आयात करा"
+  },
+  "nav": {
+    "dashboard": "डॅशबोर्ड",
+    "farms": "शेती",
+    "devices": "उपकरणे",
+    "history": "इतिहास",
+    "automation": "स्वयंचलन",
+    "team": "टीम",
+    "settings": "सेटिंग्ज",
+    "logout": "लॉगआउट"
+  },
+  "farm": {
+    "title": "शेत डॅशबोर्ड",
+    "viewHistory": "इतिहास पहा",
+    "automation": "स्वयंचलन",
+    "team": "टीम",
+    "devices": "उपकरणे",
+    "owner": "मालक",
+    "location": "स्थान",
+    "farmType": "शेतीचा प्रकार",
+    "notFound": "शेत सापडले नाही"
+  },
+  "stats": {
+    "totalDevices": "एकूण उपकरणे",
+    "online": "ऑनलाइन",
+    "sensors": "सेन्सर",
+    "actuators": "अ‍ॅक्च्युएटर",
+    "teamMembers": "टीम सदस्य"
+  },
+  "sensor": {
+    "readings": "सेन्सर रीडिंग",
+    "noSensorsConfigured": "सेन्सर कॉन्फिगर केलेले नाहीत",
+    "addSensors": "सेन्सर जोडा →",
+    "updated": "अपडेट केले",
+    "temperature": "तापमान",
+    "humidity": "आर्द्रता",
+    "light": "प्रकाश",
+    "soilMoisture": "मातीची ओलावा",
+    "co2": "कार्बन डायऑक्साइड"
+  },
+  "actuator": {
+    "controls": "अ‍ॅक्च्युएटर नियंत्रणे",
+    "viewOnly": "(फक्त पहा)",
+    "noActuatorsConfigured": "अ‍ॅक्च्युएटर कॉन्फिगर केलेले नाहीत",
+    "addActuators": "अ‍ॅक्च्युएटर जोडा →",
+    "turnOn": "चालू करा",
+    "turnOff": "बंद करा",
+    "on": "चालू",
+    "off": "बंद",
+    "controlSuccess": "अ‍ॅक्च्युएटर {{state}} केले",
+    "controlError": "अ‍ॅक्च्युएटर नियंत्रित करण्यात अयशस्वी",
+    "noPermission": "तुम्हाला अ‍ॅक्च्युएटर नियंत्रित करण्याची परवानगी नाही"
+  },
+  "alert": {
+    "recentAlerts": "अलीकडील सूचना",
+    "severity": {
+      "critical": "गंभीर",
+      "warning": "चेतावणी",
+      "info": "माहिती"
+    }
+  },
+  "roles": {
+    "superAdmin": "सुपर अॅडमिन",
+    "farmOwner": "शेत मालक",
+    "manager": "व्यवस्थापक",
+    "operator": "ऑपरेटर",
+    "viewer": "दर्शक"
+  },
+  "weather": {
+    "currentWeather": "सध्याचे हवामान",
+    "forecast": "अंदाज",
+    "recommendations": "शिफारसी",
+    "temperature": "तापमान",
+    "humidity": "आर्द्रता",
+    "windSpeed": "वाऱ्याचा वेग",
+    "conditions": "परिस्थिती"
+  },
+  "errors": {
+    "loadFailed": "शेत डेटा लोड करण्यात अयशस्वी",
+    "networkError": "नेटवर्क त्रुटी आली",
+    "unauthorized": "तुम्हाला ही क्रिया करण्याचा अधिकार नाही",
+    "serverError": "सर्व्हर त्रुटी आली"
+  }
+}

@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { farmService } from "../services/farm.service";
 import WeatherWidget from "../components/weather/WeatherWidget";
 import { socketService } from "../services/socket.service";
@@ -38,6 +39,7 @@ const sensorColors = {
 
 export default function FarmDetail() {
   const { farmId } = useParams();
+  const { t } = useTranslation();
   const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
   const [controlLoading, setControlLoading] = useState({});
@@ -68,7 +70,7 @@ export default function FarmDetail() {
       const data = await farmService.getDashboard(farmId);
       setDashboard(data);
     } catch (error) {
-      toast.error(error?.message || "Failed to load farm data");
+      toast.error(error?.message || t("errors.loadFailed"));
     } finally {
       setLoading(false);
     }
@@ -177,7 +179,7 @@ export default function FarmDetail() {
   const handleActuatorControl = async (actuatorId, currentState) => {
     // Check permission first
     if (!canControlActuators) {
-      toast.error("You don't have permission to control actuators");
+      toast.error(t("actuator.noPermission"));
       return;
     }
 
@@ -185,9 +187,9 @@ export default function FarmDetail() {
     setControlLoading((prev) => ({ ...prev, [actuatorId]: true }));
     try {
       await farmService.controlActuator(actuatorId, newState);
-      toast.success(`Actuator turned ${newState}`);
+      toast.success(t("actuator.controlSuccess", { state: newState }));
     } catch (error) {
-      toast.error(error?.message || "Failed to control actuator");
+      toast.error(error?.message || t("actuator.controlError"));
     } finally {
       setControlLoading((prev) => ({ ...prev, [actuatorId]: false }));
     }
@@ -218,7 +220,7 @@ export default function FarmDetail() {
   }
 
   if (!dashboard) {
-    return <div className="text-center text-gray-500">Farm not found</div>;
+    return <div className="text-center text-gray-500">{t("farm.notFound")}</div>;
   }
 
   // Get user's role for this farm
@@ -259,7 +261,7 @@ export default function FarmDetail() {
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
             <ChartBarIcon className="w-5 h-5" />
-            View History
+            {t("farm.viewHistory")}
           </Link>
 
           {/* Automation - only for users with permission */}
@@ -269,7 +271,7 @@ export default function FarmDetail() {
               className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
             >
               <FiZap className="w-5 h-5" />
-              Automation
+              {t("farm.automation")}
             </Link>
           )}
 
@@ -280,7 +282,7 @@ export default function FarmDetail() {
               className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
             >
               <FiUsers className="w-5 h-5" />
-              Team
+              {t("farm.team")}
             </Link>
           )}
 
@@ -291,7 +293,7 @@ export default function FarmDetail() {
               className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
             >
               <FiSettings className="w-5 h-5" />
-              Devices
+              {t("farm.devices")}
             </Link>
           )}
 
@@ -301,7 +303,7 @@ export default function FarmDetail() {
             className="flex items-center gap-2 text-gray-600 hover:text-primary-600"
           >
             <FiRefreshCw size={18} />
-            Refresh
+            {t("common.refresh")}
           </button>
         </div>
       </div>
@@ -309,31 +311,31 @@ export default function FarmDetail() {
       {/* TOP STATS (full width) */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
         <div className="bg-white rounded-lg shadow p-4">
-          <p className="text-sm text-gray-500">Total Devices</p>
+          <p className="text-sm text-gray-500">{t("stats.totalDevices")}</p>
           <p className="text-2xl font-bold">
             {dashboard.stats?.totalDevices ?? 0}
           </p>
         </div>
         <div className="bg-white rounded-lg shadow p-4">
-          <p className="text-sm text-gray-500">Online</p>
+          <p className="text-sm text-gray-500">{t("stats.online")}</p>
           <p className="text-2xl font-bold text-green-600">
             {dashboard.stats?.onlineDevices ?? 0}
           </p>
         </div>
         <div className="bg-white rounded-lg shadow p-4">
-          <p className="text-sm text-gray-500">Sensors</p>
+          <p className="text-sm text-gray-500">{t("stats.sensors")}</p>
           <p className="text-2xl font-bold">
             {dashboard.stats?.totalSensors ?? 0}
           </p>
         </div>
         <div className="bg-white rounded-lg shadow p-4">
-          <p className="text-sm text-gray-500">Actuators</p>
+          <p className="text-sm text-gray-500">{t("stats.actuators")}</p>
           <p className="text-2xl font-bold">
             {dashboard.stats?.totalActuators ?? 0}
           </p>
         </div>
         <div className="bg-white rounded-lg shadow p-4">
-          <p className="text-sm text-gray-500">Team Members</p>
+          <p className="text-sm text-gray-500">{t("stats.teamMembers")}</p>
           <p className="text-2xl font-bold">
             {dashboard.stats?.teamMembers ?? 0}
           </p>
@@ -347,19 +349,19 @@ export default function FarmDetail() {
           {/* Sensor Readings */}
           <div className="mb-6">
             <h2 className="text-lg font-semibold text-gray-800 mb-4">
-              📊 Sensor Readings
+              📊 {t("sensor.readings")}
             </h2>
 
             {allSensors.length === 0 ? (
               <div className="bg-white rounded-lg shadow p-6 text-center text-gray-500">
-                No sensors configured
+                {t("sensor.noSensorsConfigured")}
                 {canManageDevices && (
                   <div className="mt-2">
                     <Link
                       to={`/farms/${farmId}/devices`}
                       className="text-blue-600 hover:underline"
                     >
-                      Add sensors →
+                      {t("sensor.addSensors")}
                     </Link>
                   </div>
                 )}
@@ -405,7 +407,7 @@ export default function FarmDetail() {
 
                       {sensor.lastReadingAt && (
                         <p className="text-xs text-gray-400 mt-1">
-                          Updated:{" "}
+                          {t("sensor.updated")}:{" "}
                           {new Date(sensor.lastReadingAt).toLocaleTimeString()}
                         </p>
                       )}
@@ -419,24 +421,24 @@ export default function FarmDetail() {
           {/* Actuator Controls */}
           <div className="mb-6">
             <h2 className="text-lg font-semibold text-gray-800 mb-4">
-              ⚡ Actuator Controls
+              ⚡ {t("actuator.controls")}
               {!canControlActuators && (
                 <span className="ml-2 text-sm font-normal text-gray-500">
-                  (View only)
+                  {t("actuator.viewOnly")}
                 </span>
               )}
             </h2>
 
             {allActuators.length === 0 ? (
               <div className="bg-white rounded-lg shadow p-6 text-center text-gray-500">
-                No actuators configured
+                {t("actuator.noActuatorsConfigured")}
                 {canManageDevices && (
                   <div className="mt-2">
                     <Link
                       to={`/farms/${farmId}/devices`}
                       className="text-blue-600 hover:underline"
                     >
-                      Add actuators →
+                      {t("actuator.addActuators")}
                     </Link>
                   </div>
                 )}
@@ -492,8 +494,8 @@ export default function FarmDetail() {
                           <FiPower size={18} />
                         )}
                         {actuator.currentState === "ON"
-                          ? "Turn OFF"
-                          : "Turn ON"}
+                          ? t("actuator.turnOff")
+                          : t("actuator.turnOn")}
                       </button>
                     ) : (
                       <div
@@ -506,7 +508,7 @@ export default function FarmDetail() {
                         }
                       `}
                       >
-                        {actuator.currentState}
+                        {actuator.currentState === "ON" ? t("actuator.on") : t("actuator.off")}
                       </div>
                     )}
                   </div>
@@ -519,7 +521,7 @@ export default function FarmDetail() {
           {dashboard.recentAlerts?.length > 0 && (
             <div className="mb-6">
               <h2 className="text-lg font-semibold text-gray-800 mb-4">
-                🚨 Recent Alerts
+                🚨 {t("alert.recentAlerts")}
               </h2>
               <div className="bg-white rounded-lg shadow divide-y">
                 {dashboard.recentAlerts.slice(0, 5).map((alert) => (

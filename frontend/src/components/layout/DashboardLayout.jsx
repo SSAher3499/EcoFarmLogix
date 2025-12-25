@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
-import { 
-  FiHome, 
-  FiGrid, 
-  FiSettings, 
-  FiLogOut, 
-  FiMenu, 
+import LanguageSwitcher from '../common/LanguageSwitcher';
+import {
+  FiHome,
+  FiGrid,
+  FiSettings,
+  FiLogOut,
+  FiMenu,
   FiX,
   FiBell,
   FiUser
@@ -94,6 +95,9 @@ export default function DashboardLayout({ children }) {
             </button>
 
             <div className="flex items-center gap-4 ml-auto">
+              {/* Language Switcher */}
+              <LanguageSwitcher />
+
               <button className="relative text-gray-600 hover:text-gray-800">
                 <FiBell size={20} />
                 <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
