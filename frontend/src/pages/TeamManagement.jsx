@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { FiArrowLeft, FiPlus, FiTrash2, FiMail, FiUsers } from 'react-icons/fi';
+import { FiArrowLeft, FiPlus, FiTrash2, FiMail, FiUsers, FiUser, FiPhone, FiLock } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import { useTranslation } from '../hooks/useTranslation';
 import teamService from '../services/team.service';
@@ -22,6 +22,9 @@ export default function TeamManagement() {
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [inviteForm, setInviteForm] = useState({
     email: '',
+    fullName: '',
+    phone: '',
+    password: '',
     role: 'VIEWER'
   });
   const [inviting, setInviting] = useState(false);
@@ -58,8 +61,13 @@ export default function TeamManagement() {
 
   const handleInvite = async (e) => {
     e.preventDefault();
-    if (!inviteForm.email) {
-      toast.error(t('messages.validationError'));
+    if (!inviteForm.email || !inviteForm.fullName || !inviteForm.password) {
+      toast.error(t('messages.validationError', 'Please fill all required fields'));
+      return;
+    }
+
+    if (inviteForm.password.length < 6) {
+      toast.error(t('auth.passwordLength', 'Password must be at least 6 characters'));
       return;
     }
 
@@ -68,7 +76,7 @@ export default function TeamManagement() {
       await teamService.addTeamMember(farmId, inviteForm);
       toast.success(t('team.inviteSent', 'Team member added successfully'));
       setShowInviteModal(false);
-      setInviteForm({ email: '', role: 'VIEWER' });
+      setInviteForm({ email: '', fullName: '', phone: '', password: '', role: 'VIEWER' });
       loadTeam();
     } catch (error) {
       toast.error(error.response?.data?.message || t('team.inviteFailed', 'Failed to add team member'));
@@ -152,7 +160,7 @@ export default function TeamManagement() {
           <h2 className="text-xl font-semibold text-gray-700 mb-2">{t('team.noMembers', 'No team members yet')}</h2>
           <p className="text-gray-500 mb-6">
             {canInviteUsers 
-              ? t('team.noMembersDesc', 'Invite team members to collaborate on this farm')
+              ? t('team.noMembersDesc', 'Add team members to collaborate on this farm')
               : t('team.noMembersViewOnly', 'No team members have been added to this farm')
             }
           </p>
@@ -161,7 +169,7 @@ export default function TeamManagement() {
               onClick={() => setShowInviteModal(true)}
               className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700"
             >
-              {t('team.inviteFirst', 'Invite First Member')}
+              {t('team.inviteFirst', 'Add First Member')}
             </button>
           )}
         </div>
@@ -248,16 +256,35 @@ export default function TeamManagement() {
         </div>
       )}
 
-      {/* Invite Modal */}
+      {/* Add Member Modal */}
       {showInviteModal && canInviteUsers && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <h2 className="text-xl font-bold text-gray-800 mb-4">
                 {t('team.inviteMember', 'Add Team Member')}
               </h2>
 
               <form onSubmit={handleInvite} className="space-y-4">
+                {/* Full Name */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {t('auth.fullName')} *
+                  </label>
+                  <div className="relative">
+                    <FiUser className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="text"
+                      value={inviteForm.fullName}
+                      onChange={(e) => setInviteForm({ ...inviteForm, fullName: e.target.value })}
+                      placeholder={t('team.fullNamePlaceholder', 'Enter full name')}
+                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Email */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     {t('auth.email')} *
@@ -270,10 +297,49 @@ export default function TeamManagement() {
                       onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
                       placeholder={t('team.emailPlaceholder', 'Enter email address')}
                       className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                      required
                     />
                   </div>
                 </div>
 
+                {/* Phone (Optional) */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {t('auth.phone')} ({t('common.optional', 'Optional')})
+                  </label>
+                  <div className="relative">
+                    <FiPhone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="tel"
+                      value={inviteForm.phone}
+                      onChange={(e) => setInviteForm({ ...inviteForm, phone: e.target.value })}
+                      placeholder={t('team.phonePlaceholder', 'Enter phone number')}
+                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
+                </div>
+
+                {/* Password */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {t('auth.password')} *
+                  </label>
+                  <div className="relative">
+                    <FiLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="password"
+                      value={inviteForm.password}
+                      onChange={(e) => setInviteForm({ ...inviteForm, password: e.target.value })}
+                      placeholder={t('team.passwordPlaceholder', 'Set password for member')}
+                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                      required
+                      minLength={6}
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">{t('auth.passwordHint', 'Minimum 6 characters')}</p>
+                </div>
+
+                {/* Role */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     {t('team.role')} *
@@ -291,6 +357,7 @@ export default function TeamManagement() {
                   </select>
                 </div>
 
+                {/* Role Permissions Info */}
                 <div className="bg-gray-50 p-3 rounded-lg">
                   <h4 className="text-sm font-medium text-gray-700 mb-2">{t('team.rolePermissions', 'Role Permissions')}:</h4>
                   <ul className="text-xs text-gray-600 space-y-1">
@@ -300,6 +367,7 @@ export default function TeamManagement() {
                   </ul>
                 </div>
 
+                {/* Buttons */}
                 <div className="flex gap-3 pt-4">
                   <button
                     type="button"
