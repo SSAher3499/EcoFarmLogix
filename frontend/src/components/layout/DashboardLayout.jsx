@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
-import { 
-  FiHome, 
-  FiGrid, 
-  FiSettings, 
-  FiLogOut, 
-  FiMenu, 
+import { useTranslation } from '../../hooks/useTranslation';
+import LanguageSwitcher from '../common/LanguageSwitcher';
+import {
+  FiHome,
+  FiGrid,
+  FiSettings,
+  FiLogOut,
+  FiMenu,
   FiX,
   FiBell,
   FiUser
@@ -15,6 +17,7 @@ import {
 export default function DashboardLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, logout } = useAuthStore();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -24,9 +27,9 @@ export default function DashboardLayout({ children }) {
   };
 
   const navItems = [
-    { path: '/dashboard', icon: FiHome, label: 'Dashboard' },
-    { path: '/farms', icon: FiGrid, label: 'My Farms' },
-    { path: '/settings', icon: FiSettings, label: 'Settings' },
+    { path: '/dashboard', icon: FiHome, label: t('nav.dashboard') },
+    { path: '/farms', icon: FiGrid, label: t('nav.myFarms') },
+    { path: '/settings', icon: FiSettings, label: t('nav.settings') },
   ];
 
   const isActive = (path) => location.pathname === path;
@@ -35,7 +38,7 @@ export default function DashboardLayout({ children }) {
     <div className="min-h-screen bg-gray-100">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
@@ -59,8 +62,8 @@ export default function DashboardLayout({ children }) {
               onClick={() => setSidebarOpen(false)}
               className={`
                 flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition-colors
-                ${isActive(item.path) 
-                  ? 'bg-primary-100 text-primary-700' 
+                ${isActive(item.path)
+                  ? 'bg-primary-100 text-primary-700'
                   : 'text-gray-600 hover:bg-gray-100'}
               `}
             >
@@ -76,7 +79,7 @@ export default function DashboardLayout({ children }) {
             className="flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg w-full transition-colors"
           >
             <FiLogOut size={20} />
-            <span>Logout</span>
+            <span>{t('common.logout')}</span>
           </button>
         </div>
       </aside>
@@ -94,6 +97,10 @@ export default function DashboardLayout({ children }) {
             </button>
 
             <div className="flex items-center gap-4 ml-auto">
+              {/* Language Switcher */}
+              <LanguageSwitcher />
+
+              {/* Notifications */}
               <button className="relative text-gray-600 hover:text-gray-800">
                 <FiBell size={20} />
                 <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
@@ -101,6 +108,7 @@ export default function DashboardLayout({ children }) {
                 </span>
               </button>
 
+              {/* User */}
               <div className="flex items-center gap-2 text-gray-700">
                 <FiUser size={20} />
                 <span className="hidden sm:inline">{user?.fullName}</span>

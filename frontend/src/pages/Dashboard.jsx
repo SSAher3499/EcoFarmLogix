@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { farmService } from '../services/farm.service';
+import { useTranslation } from '../hooks/useTranslation';
 import { FiMapPin, FiThermometer, FiDroplet, FiActivity } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 
 export default function Dashboard() {
   const [farms, setFarms] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { t } = useTranslation();
 
   useEffect(() => {
     loadFarms();
@@ -17,7 +19,7 @@ export default function Dashboard() {
       const data = await farmService.getFarms();
       setFarms(data);
     } catch (error) {
-      toast.error('Failed to load farms');
+      toast.error(t('messages.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -34,25 +36,25 @@ export default function Dashboard() {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
+        <h1 className="text-2xl font-bold text-gray-800">{t('dashboard.title')}</h1>
         <Link
           to="/farms/new"
           className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
         >
-          + Add Farm
+          {t('dashboard.addFarm')}
         </Link>
       </div>
 
       {farms.length === 0 ? (
         <div className="bg-white rounded-lg shadow p-12 text-center">
           <div className="text-6xl mb-4">🌱</div>
-          <h2 className="text-xl font-semibold text-gray-700 mb-2">No farms yet</h2>
-          <p className="text-gray-500 mb-6">Add your first farm to start monitoring</p>
+          <h2 className="text-xl font-semibold text-gray-700 mb-2">{t('dashboard.noFarms')}</h2>
+          <p className="text-gray-500 mb-6">{t('dashboard.noFarmsDesc')}</p>
           <Link
             to="/farms/new"
             className="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition-colors"
           >
-            Add Your First Farm
+            {t('dashboard.addFirstFarm')}
           </Link>
         </div>
       ) : (
@@ -68,33 +70,37 @@ export default function Dashboard() {
                   <h3 className="text-lg font-semibold text-gray-800">{farm.name}</h3>
                   <p className="text-sm text-gray-500 flex items-center gap-1 mt-1">
                     <FiMapPin size={14} />
-                    {farm.locationAddress || 'No location set'}
+                    {farm.locationAddress || t('dashboard.noLocation')}
                   </p>
                 </div>
                 <span className={`
                   px-2 py-1 text-xs rounded-full
-                  ${farm.devices?.some(d => d.isOnline) 
-                    ? 'bg-green-100 text-green-700' 
+                  ${farm.devices?.some(d => d.isOnline)
+                    ? 'bg-green-100 text-green-700'
                     : 'bg-gray-100 text-gray-600'}
                 `}>
-                  {farm.devices?.some(d => d.isOnline) ? '● Online' : '○ Offline'}
+                  {farm.devices?.some(d => d.isOnline) 
+                    ? `● ${t('common.online')}` 
+                    : `○ ${t('common.offline')}`}
                 </span>
               </div>
 
               <div className="grid grid-cols-3 gap-4 text-center">
                 <div className="bg-gray-50 rounded-lg p-3">
                   <FiThermometer className="mx-auto text-orange-500 mb-1" size={20} />
-                  <p className="text-xs text-gray-500">Devices</p>
+                  <p className="text-xs text-gray-500">{t('dashboard.devices')}</p>
                   <p className="font-semibold">{farm._count?.devices || 0}</p>
                 </div>
                 <div className="bg-gray-50 rounded-lg p-3">
                   <FiDroplet className="mx-auto text-blue-500 mb-1" size={20} />
-                  <p className="text-xs text-gray-500">Type</p>
-                  <p className="font-semibold text-xs">{farm.farmType}</p>
+                  <p className="text-xs text-gray-500">{t('farm.type')}</p>
+                  <p className="font-semibold text-xs">
+                    {t(`farm.farmTypes.${farm.farmType}`) || farm.farmType}
+                  </p>
                 </div>
                 <div className="bg-gray-50 rounded-lg p-3">
                   <FiActivity className="mx-auto text-red-500 mb-1" size={20} />
-                  <p className="text-xs text-gray-500">Alerts</p>
+                  <p className="text-xs text-gray-500">{t('dashboard.alerts')}</p>
                   <p className="font-semibold">{farm._count?.alerts || 0}</p>
                 </div>
               </div>

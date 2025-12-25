@@ -1,0 +1,354 @@
+// Marathi Translations (मराठी भाषांतर)
+export default {
+  // App
+  app: {
+    name: 'EcoFarmLogix',
+    tagline: 'स्मार्ट शेती निरीक्षण प्रणाली',
+  },
+
+  // Common
+  common: {
+    loading: 'लोड होत आहे...',
+    save: 'जतन करा',
+    cancel: 'रद्द करा',
+    delete: 'हटवा',
+    edit: 'संपादित करा',
+    add: 'जोडा',
+    search: 'शोधा',
+    filter: 'फिल्टर',
+    actions: 'क्रिया',
+    status: 'स्थिती',
+    name: 'नाव',
+    type: 'प्रकार',
+    settings: 'सेटिंग्ज',
+    logout: 'लॉगआउट',
+    online: 'ऑनलाइन',
+    offline: 'ऑफलाइन',
+    active: 'सक्रिय',
+    inactive: 'निष्क्रिय',
+    yes: 'होय',
+    no: 'नाही',
+    confirm: 'पुष्टी करा',
+    back: 'मागे',
+    next: 'पुढे',
+    submit: 'सबमिट करा',
+    close: 'बंद करा',
+    refresh: 'रिफ्रेश',
+    noData: 'डेटा उपलब्ध नाही',
+    error: 'त्रुटी',
+    success: 'यशस्वी',
+    warning: 'सावधान',
+  },
+
+  // Navigation
+  nav: {
+    dashboard: 'डॅशबोर्ड',
+    myFarms: 'माझी शेती',
+    settings: 'सेटिंग्ज',
+    notifications: 'सूचना',
+  },
+
+  // Auth
+  auth: {
+    login: 'लॉगिन',
+    register: 'नोंदणी',
+    email: 'ईमेल',
+    password: 'पासवर्ड',
+    fullName: 'पूर्ण नाव',
+    phone: 'फोन',
+    forgotPassword: 'पासवर्ड विसरलात?',
+    noAccount: 'खाते नाही?',
+    hasAccount: 'खाते आहे?',
+    loginSuccess: 'लॉगिन यशस्वी',
+    registerSuccess: 'नोंदणी यशस्वी',
+    logoutSuccess: 'लॉगआउट यशस्वी',
+    invalidCredentials: 'अवैध ईमेल किंवा पासवर्ड',
+    createAccount: 'तुमचे खाते तयार करा',
+    confirmPassword: 'पासवर्ड पुष्टी करा',
+    passwordMismatch: 'पासवर्ड जुळत नाहीत',
+    passwordRequirements: 'किमान 8 अक्षरे, मोठे, लहान अक्षर आणि अंक',
+    creatingAccount: 'खाते तयार होत आहे...',
+    registerFailed: 'नोंदणी अयशस्वी',
+  },
+
+  // Dashboard
+  dashboard: {
+    title: 'डॅशबोर्ड',
+    addFarm: '+ शेत जोडा',
+    noFarms: 'अद्याप कोणतेही शेत नाही',
+    noFarmsDesc: 'निरीक्षण सुरू करण्यासाठी आपले पहिले शेत जोडा',
+    addFirstFarm: 'आपले पहिले शेत जोडा',
+    devices: 'उपकरणे',
+    alerts: 'सूचना',
+    noLocation: 'स्थान सेट नाही',
+  },
+
+  // Farm
+  farm: {
+    title: 'शेताचा तपशील',
+    name: 'शेताचे नाव',
+    type: 'शेताचा प्रकार',
+    location: 'स्थान',
+    address: 'पत्ता',
+    area: 'क्षेत्रफळ',
+    areaUnit: 'हेक्टर',
+    sensors: 'सेन्सर',
+    actuators: 'अॅक्च्युएटर',
+    automation: 'ऑटोमेशन',
+    team: 'टीम',
+    history: 'इतिहास',
+    devices: 'उपकरणे',
+    addDevice: '+ उपकरण जोडा',
+    configureDevices: 'उपकरणे कॉन्फिगर करा',
+    liveData: 'थेट डेटा',
+    realtimeMonitoring: 'रिअल-टाइम निरीक्षण',
+    farmTypes: {
+      POLYHOUSE: 'पॉलीहाऊस',
+      GREENHOUSE: 'ग्रीनहाऊस',
+      OPENFIELD: 'खुले शेत',
+      INDOOR: 'इनडोअर शेती',
+      HYDROPONIC: 'हायड्रोपोनिक',
+      AQUAPONIC: 'अॅक्वापोनिक',
+    },
+  },
+
+  // Sensors
+  sensors: {
+    title: 'सेन्सर',
+    addSensor: 'सेन्सर जोडा',
+    sensorType: 'सेन्सर प्रकार',
+    sensorName: 'सेन्सर नाव',
+    connectionType: 'कनेक्शन प्रकार',
+    unit: 'एकक',
+    currentValue: 'सध्याचे मूल्य',
+    lastReading: 'शेवटचे वाचन',
+    minThreshold: 'किमान मर्यादा',
+    maxThreshold: 'कमाल मर्यादा',
+    alertThresholds: 'सूचना मर्यादा (पर्यायी)',
+    alertDesc: 'वाचन मर्यादा ओलांडल्यास सूचना येईल',
+    types: {
+      TEMPERATURE: 'तापमान',
+      HUMIDITY: 'आर्द्रता',
+      SOIL_MOISTURE: 'मातीची ओलावा',
+      SOIL_TEMPERATURE: 'मातीचे तापमान',
+      LIGHT: 'प्रकाश तीव्रता',
+      CO2: 'CO2 पातळी',
+      PH: 'pH पातळी',
+      EC: 'विद्युत वाहकता',
+      WATER_LEVEL: 'पाण्याची पातळी',
+      WATER_FLOW: 'पाण्याचा प्रवाह दर',
+    },
+  },
+
+  // Actuators
+  actuators: {
+    title: 'अॅक्च्युएटर',
+    addActuator: 'अॅक्च्युएटर जोडा',
+    actuatorType: 'अॅक्च्युएटर प्रकार',
+    actuatorName: 'अॅक्च्युएटर नाव',
+    control: 'नियंत्रण',
+    turnOn: 'चालू करा',
+    turnOff: 'बंद करा',
+    on: 'चालू',
+    off: 'बंद',
+    types: {
+      FAN: 'पंखा',
+      EXHAUST_FAN: 'एक्झॉस्ट फॅन',
+      FOGGER: 'फॉगर',
+      IRRIGATION_VALVE: 'सिंचन वाल्व',
+      SHADE_NET: 'शेड नेट',
+      GROW_LIGHT: 'ग्रो लाइट',
+      HEATER: 'हीटर',
+      COOLER: 'कूलर',
+      WATER_PUMP: 'पाण्याचा पंप',
+      DOSING_PUMP: 'डोसिंग पंप',
+      RELAY: 'रिले',
+    },
+  },
+
+  // Devices
+  devices: {
+    title: 'उपकरण व्यवस्थापन',
+    subtitle: 'आपल्या शेतासाठी सेन्सर आणि अॅक्च्युएटर व्यवस्थापित करा',
+    addDevice: '+ उपकरण जोडा',
+    deviceName: 'उपकरणाचे नाव',
+    deviceType: 'उपकरण प्रकार',
+    macAddress: 'MAC पत्ता',
+    firmwareVersion: 'फर्मवेअर आवृत्ती',
+    lastSeen: 'शेवटचे दिसले',
+    configure: 'कॉन्फिगर करा',
+    serialConfig: 'सीरियल पोर्ट कॉन्फिगरेशन',
+    noDevices: 'कोणतेही उपकरण कॉन्फिगर केलेले नाही',
+    noDevicesDesc: 'निरीक्षण सुरू करण्यासाठी गेटवे उपकरण जोडा',
+    types: {
+      GATEWAY: 'गेटवे',
+      SENSOR_NODE: 'सेन्सर नोड',
+      RELAY_NODE: 'रिले नोड',
+      CAMERA: 'कॅमेरा',
+    },
+  },
+
+  // Modbus Configuration
+  modbus: {
+    title: 'Modbus RS485 कॉन्फिगरेशन',
+    slaveId: 'स्लेव्ह ID',
+    slaveIdDesc: 'उपकरण पत्ता (1-247)',
+    functionCode: 'फंक्शन कोड',
+    registerAddress: 'रजिस्टर पत्ता',
+    registerAddressDesc: 'प्रारंभिक पत्ता (0-65535)',
+    registerCount: 'रजिस्टर संख्या',
+    registerCountDesc: 'वाचण्यासाठी रजिस्टर्सची संख्या',
+    dataType: 'डेटा प्रकार',
+    byteOrder: 'बाइट क्रम',
+    coilAddress: 'कॉइल/रजिस्टर पत्ता',
+    coilAddressDesc: 'लिहिण्यासाठी कॉइल पत्ता (0-65535)',
+    functionCodes: {
+      1: '01 - कॉइल्स वाचा',
+      2: '02 - डिस्क्रीट इनपुट्स वाचा',
+      3: '03 - होल्डिंग रजिस्टर्स वाचा',
+      4: '04 - इनपुट रजिस्टर्स वाचा',
+    },
+    dataTypes: {
+      INT16: 'INT16 (साइन्ड 16-बिट)',
+      UINT16: 'UINT16 (अनसाइन्ड 16-बिट)',
+      INT32: 'INT32 (साइन्ड 32-बिट)',
+      UINT32: 'UINT32 (अनसाइन्ड 32-बिट)',
+      FLOAT32: 'FLOAT32 (32-बिट फ्लोट)',
+      FLOAT64: 'FLOAT64 (64-बिट फ्लोट)',
+    },
+    byteOrders: {
+      AB: 'AB - बिग एंडियन (12)',
+      BA: 'BA - लिटिल एंडियन (21)',
+      ABCD: 'ABCD - बिग एंडियन (1234)',
+      DCBA: 'DCBA - लिटिल एंडियन (4321)',
+      CDAB: 'CDAB - मिड-बिग एंडियन (3412)',
+      BADC: 'BADC - मिड-लिटिल एंडियन (2143)',
+    },
+  },
+
+  // Serial Port Configuration
+  serial: {
+    title: 'सीरियल पोर्ट कॉन्फिगरेशन',
+    subtitle: 'RS485/Modbus सेटिंग्ज',
+    portName: 'पोर्ट नाव',
+    baudRate: 'बॉड रेट',
+    dataBits: 'डेटा बिट्स',
+    parity: 'पॅरिटी',
+    stopBits: 'स्टॉप बिट्स',
+    timeout: 'टाइमआउट (ms)',
+    pollInterval: 'पोल इंटरव्हल (ms)',
+    pollIntervalDesc: 'सेन्सर किती वेळा वाचायचे (किमान: 1000ms)',
+    retries: 'पुनर्प्रयत्न',
+    retriesDesc: 'वाचन अयशस्वी झाल्यास पुनर्प्रयत्न संख्या',
+    saveConfig: 'कॉन्फिगरेशन जतन करा',
+    parityOptions: {
+      none: 'नाही',
+      even: 'सम',
+      odd: 'विषम',
+    },
+  },
+
+  // Value Conversion
+  conversion: {
+    title: 'मूल्य रूपांतरण',
+    formula: 'अंतिम मूल्य = (कच्चे मूल्य × स्केल फॅक्टर) + ऑफसेट',
+    scaleFactor: 'स्केल फॅक्टर',
+    scaleFactorDesc: 'उदा., ÷10 साठी 0.1',
+    offset: 'ऑफसेट',
+    decimalPlaces: 'दशांश स्थाने',
+  },
+
+  // GPIO Configuration
+  gpio: {
+    title: 'GPIO कॉन्फिगरेशन',
+    pin: 'GPIO पिन',
+    pinDesc: 'Raspberry Pi वर BCM GPIO पिन नंबर',
+  },
+
+  // Connection Types
+  connection: {
+    types: {
+      GPIO: 'GPIO (डायरेक्ट पिन)',
+      MODBUS_RTU: 'Modbus RTU (RS485)',
+      MODBUS_TCP: 'Modbus TCP/IP',
+      ANALOG: 'अॅनालॉग (ADC)',
+      I2C: 'I2C बस',
+    },
+  },
+
+  // Automation
+  automation: {
+    title: 'ऑटोमेशन नियम',
+    addRule: '+ नियम जोडा',
+    ruleName: 'नियमाचे नाव',
+    condition: 'अट',
+    action: 'क्रिया',
+    enabled: 'सक्षम',
+    disabled: 'अक्षम',
+    noRules: 'कोणतेही ऑटोमेशन नियम कॉन्फिगर केलेले नाहीत',
+  },
+
+  // Team
+  team: {
+    title: 'टीम व्यवस्थापन',
+    addMember: '+ सदस्य जोडा',
+    role: 'भूमिका',
+    permissions: 'परवानग्या',
+    roles: {
+      SUPER_ADMIN: 'सुपर अॅडमिन',
+      ADMIN: 'अॅडमिन',
+      OPERATOR: 'ऑपरेटर',
+      VIEWER: 'दर्शक',
+    },
+  },
+
+  // Weather
+  weather: {
+    title: 'हवामान',
+    temperature: 'तापमान',
+    humidity: 'आर्द्रता',
+    windSpeed: 'वाऱ्याचा वेग',
+    forecast: 'अंदाज',
+    recommendations: 'शिफारसी',
+  },
+
+  // Alerts
+  alerts: {
+    title: 'सूचना',
+    newAlert: 'नवीन सूचना',
+    acknowledge: 'मान्य करा',
+    resolve: 'निराकरण करा',
+    critical: 'गंभीर',
+    high: 'उच्च',
+    medium: 'मध्यम',
+    low: 'कमी',
+  },
+
+  // Messages
+  messages: {
+    saveSuccess: 'यशस्वीरित्या जतन केले',
+    saveFailed: 'जतन करण्यात अयशस्वी',
+    deleteSuccess: 'यशस्वीरित्या हटवले',
+    deleteFailed: 'हटवण्यात अयशस्वी',
+    updateSuccess: 'यशस्वीरित्या अपडेट केले',
+    updateFailed: 'अपडेट करण्यात अयशस्वी',
+    loadFailed: 'डेटा लोड करण्यात अयशस्वी',
+    confirmDelete: 'तुम्हाला खात्री आहे की तुम्ही हे हटवू इच्छिता?',
+    networkError: 'नेटवर्क त्रुटी. कृपया आपले कनेक्शन तपासा.',
+    sessionExpired: 'सत्र संपले. कृपया पुन्हा लॉगिन करा.',
+    permissionDenied: 'परवानगी नाकारली',
+    validationError: 'कृपया सर्व आवश्यक फील्ड भरा',
+    sensorAdded: 'सेन्सर यशस्वीरित्या जोडला',
+    actuatorAdded: 'अॅक्च्युएटर यशस्वीरित्या जोडला',
+    deviceAdded: 'उपकरण यशस्वीरित्या जोडले',
+    configSaved: 'कॉन्फिगरेशन यशस्वीरित्या जतन केले',
+  },
+
+  // Language
+  language: {
+    title: 'भाषा',
+    english: 'English',
+    marathi: 'मराठी',
+    select: 'भाषा निवडा',
+  },
+};

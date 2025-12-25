@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
+import { useTranslation } from '../hooks/useTranslation';
+import LanguageSwitcher from '../components/common/LanguageSwitcher';
 import toast from 'react-hot-toast';
 
 export default function Register() {
@@ -12,7 +14,8 @@ export default function Register() {
     confirmPassword: '',
   });
   const [loading, setLoading] = useState(false);
-  
+  const { t } = useTranslation();
+
   const register = useAuthStore((state) => state.register);
   const navigate = useNavigate();
 
@@ -22,9 +25,9 @@ export default function Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (formData.password !== formData.confirmPassword) {
-      toast.error('Passwords do not match');
+      toast.error(t('auth.passwordMismatch', 'Passwords do not match'));
       return;
     }
 
@@ -37,10 +40,10 @@ export default function Register() {
         phone: formData.phone,
         password: formData.password,
       });
-      toast.success('Registration successful!');
+      toast.success(t('auth.registerSuccess'));
       navigate('/dashboard');
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Registration failed');
+      toast.error(error.response?.data?.message || t('auth.registerFailed', 'Registration failed'));
     } finally {
       setLoading(false);
     }
@@ -48,16 +51,21 @@ export default function Register() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 py-8">
+      {/* Language Switcher in top right */}
+      <div className="absolute top-4 right-4">
+        <LanguageSwitcher />
+      </div>
+
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-primary-600">🌱 EcoFarmLogix</h1>
-          <p className="text-gray-600 mt-2">Create your account</p>
+          <p className="text-gray-600 mt-2">{t('auth.createAccount', 'Create your account')}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Full Name
+              {t('auth.fullName')}
             </label>
             <input
               type="text"
@@ -72,7 +80,7 @@ export default function Register() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Email Address
+              {t('auth.email')}
             </label>
             <input
               type="email"
@@ -87,7 +95,7 @@ export default function Register() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Phone Number
+              {t('auth.phone')}
             </label>
             <input
               type="tel"
@@ -101,7 +109,7 @@ export default function Register() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Password
+              {t('auth.password')}
             </label>
             <input
               type="password"
@@ -114,13 +122,13 @@ export default function Register() {
               placeholder="••••••••"
             />
             <p className="text-xs text-gray-500 mt-1">
-              Min 8 characters, with uppercase, lowercase, and number
+              {t('auth.passwordRequirements', 'Min 8 characters, with uppercase, lowercase, and number')}
             </p>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Confirm Password
+              {t('auth.confirmPassword', 'Confirm Password')}
             </label>
             <input
               type="password"
@@ -138,14 +146,14 @@ export default function Register() {
             disabled={loading}
             className="w-full bg-primary-600 text-white py-2 px-4 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-6"
           >
-            {loading ? 'Creating account...' : 'Register'}
+            {loading ? t('auth.creatingAccount', 'Creating account...') : t('auth.register')}
           </button>
         </form>
 
         <p className="text-center mt-6 text-gray-600">
-          Already have an account?{' '}
+          {t('auth.hasAccount')}{' '}
           <Link to="/login" className="text-primary-600 hover:underline">
-            Login
+            {t('auth.login')}
           </Link>
         </p>
       </div>
