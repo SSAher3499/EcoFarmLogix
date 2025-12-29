@@ -28,7 +28,7 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 dark:border-primary-400"></div>
       </div>
     );
   }
@@ -36,23 +36,23 @@ export default function Dashboard() {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">{t('dashboard.title')}</h1>
+        <h1 className="text-2xl font-bold text-gray-800 dark:text-white">{t('dashboard.title')}</h1>
         <Link
           to="/farms/new"
-          className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
+          className="bg-primary-600 dark:bg-primary-500 text-white px-4 py-2 rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors"
         >
           {t('dashboard.addFarm')}
         </Link>
       </div>
 
       {farms.length === 0 ? (
-        <div className="bg-white rounded-lg shadow p-12 text-center">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-12 text-center transition-colors">
           <div className="text-6xl mb-4">🌱</div>
-          <h2 className="text-xl font-semibold text-gray-700 mb-2">{t('dashboard.noFarms')}</h2>
-          <p className="text-gray-500 mb-6">{t('dashboard.noFarmsDesc')}</p>
+          <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-2">{t('dashboard.noFarms')}</h2>
+          <p className="text-gray-500 dark:text-gray-400 mb-6">{t('dashboard.noFarmsDesc')}</p>
           <Link
             to="/farms/new"
-            className="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition-colors"
+            className="bg-primary-600 dark:bg-primary-500 text-white px-6 py-2 rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors inline-block"
           >
             {t('dashboard.addFirstFarm')}
           </Link>
@@ -63,12 +63,12 @@ export default function Dashboard() {
             <Link
               key={farm.id}
               to={`/farms/${farm.id}`}
-              className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow p-6"
+              className="bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-lg dark:hover:shadow-primary-900/20 transition-all p-6"
             >
               <div className="flex justify-between items-start mb-4">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-800">{farm.name}</h3>
-                  <p className="text-sm text-gray-500 flex items-center gap-1 mt-1">
+                  <h3 className="text-lg font-semibold text-gray-800 dark:text-white">{farm.name}</h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-1">
                     <FiMapPin size={14} />
                     {farm.locationAddress || t('dashboard.noLocation')}
                   </p>
@@ -76,32 +76,32 @@ export default function Dashboard() {
                 <span className={`
                   px-2 py-1 text-xs rounded-full
                   ${farm.devices?.some(d => d.isOnline)
-                    ? 'bg-green-100 text-green-700'
-                    : 'bg-gray-100 text-gray-600'}
+                    ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'}
                 `}>
-                  {farm.devices?.some(d => d.isOnline) 
-                    ? `● ${t('common.online')}` 
+                  {farm.devices?.some(d => d.isOnline)
+                    ? `● ${t('common.online')}`
                     : `○ ${t('common.offline')}`}
                 </span>
               </div>
 
               <div className="grid grid-cols-3 gap-4 text-center">
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <FiThermometer className="mx-auto text-orange-500 mb-1" size={20} />
-                  <p className="text-xs text-gray-500">{t('dashboard.devices')}</p>
-                  <p className="font-semibold">{farm._count?.devices || 0}</p>
+                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 transition-colors">
+                  <FiThermometer className="mx-auto text-orange-500 dark:text-orange-400 mb-1" size={20} />
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{t('dashboard.devices')}</p>
+                  <p className="font-semibold dark:text-white">{farm._count?.devices || 0}</p>
                 </div>
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <FiDroplet className="mx-auto text-blue-500 mb-1" size={20} />
-                  <p className="text-xs text-gray-500">{t('farm.type')}</p>
-                  <p className="font-semibold text-xs">
+                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 transition-colors">
+                  <FiDroplet className="mx-auto text-blue-500 dark:text-blue-400 mb-1" size={20} />
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{t('farm.type')}</p>
+                  <p className="font-semibold dark:text-white text-xs">
                     {t(`farm.farmTypes.${farm.farmType}`) || farm.farmType}
                   </p>
                 </div>
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <FiActivity className="mx-auto text-red-500 mb-1" size={20} />
-                  <p className="text-xs text-gray-500">{t('dashboard.alerts')}</p>
-                  <p className="font-semibold">{farm._count?.alerts || 0}</p>
+                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 transition-colors">
+                  <FiActivity className="mx-auto text-red-500 dark:text-red-400 mb-1" size={20} />
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{t('dashboard.alerts')}</p>
+                  <p className="font-semibold dark:text-white">{farm._count?.alerts || 0}</p>
                 </div>
               </div>
             </Link>

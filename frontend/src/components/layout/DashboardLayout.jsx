@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import { useTranslation } from '../../hooks/useTranslation';
 import LanguageSwitcher from '../common/LanguageSwitcher';
+import ThemeToggle from '../common/ThemeToggle';
 import {
   FiHome,
   FiGrid,
@@ -35,7 +36,7 @@ export default function DashboardLayout({ children }) {
   const isActive = (path) => location.pathname === path;
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-200">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div
@@ -46,12 +47,12 @@ export default function DashboardLayout({ children }) {
 
       {/* Sidebar */}
       <aside className={`
-        fixed top-0 left-0 z-30 h-full w-64 bg-white shadow-lg transform transition-transform duration-300
+        fixed top-0 left-0 z-30 h-full w-64 bg-white dark:bg-gray-800 shadow-lg transform transition-all duration-300
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
         lg:translate-x-0
       `}>
-        <div className="p-6 border-b">
-          <h1 className="text-2xl font-bold text-primary-600">🌱 EcoFarmLogix</h1>
+        <div className="p-6 border-b dark:border-gray-700">
+          <h1 className="text-2xl font-bold text-primary-600 dark:text-primary-400">🌱 EcoFarmLogix</h1>
         </div>
 
         <nav className="p-4">
@@ -63,8 +64,8 @@ export default function DashboardLayout({ children }) {
               className={`
                 flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition-colors
                 ${isActive(item.path)
-                  ? 'bg-primary-100 text-primary-700'
-                  : 'text-gray-600 hover:bg-gray-100'}
+                  ? 'bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300'
+                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}
               `}
             >
               <item.icon size={20} />
@@ -73,10 +74,10 @@ export default function DashboardLayout({ children }) {
           ))}
         </nav>
 
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t">
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t dark:border-gray-700">
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg w-full transition-colors"
+            className="flex items-center gap-3 px-4 py-3 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg w-full transition-colors"
           >
             <FiLogOut size={20} />
             <span>{t('common.logout')}</span>
@@ -87,11 +88,11 @@ export default function DashboardLayout({ children }) {
       {/* Main content */}
       <div className="lg:ml-64">
         {/* Top navbar */}
-        <header className="bg-white shadow-sm sticky top-0 z-10">
+        <header className="bg-white dark:bg-gray-800 shadow-sm sticky top-0 z-10 transition-colors duration-200">
           <div className="flex items-center justify-between px-6 py-4">
             <button
               onClick={() => setSidebarOpen(true)}
-              className="lg:hidden text-gray-600"
+              className="lg:hidden text-gray-600 dark:text-gray-300"
             >
               <FiMenu size={24} />
             </button>
@@ -100,8 +101,11 @@ export default function DashboardLayout({ children }) {
               {/* Language Switcher */}
               <LanguageSwitcher />
 
+              {/* Theme Toggle */}
+              <ThemeToggle />
+
               {/* Notifications */}
-              <button className="relative text-gray-600 hover:text-gray-800">
+              <button className="relative text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white transition-colors">
                 <FiBell size={20} />
                 <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
                   3
@@ -109,7 +113,7 @@ export default function DashboardLayout({ children }) {
               </button>
 
               {/* User */}
-              <div className="flex items-center gap-2 text-gray-700">
+              <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
                 <FiUser size={20} />
                 <span className="hidden sm:inline">{user?.fullName}</span>
               </div>

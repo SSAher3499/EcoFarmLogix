@@ -411,7 +411,7 @@ export default function DeviceManagement() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600" />
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 dark:border-green-400" />
       </div>
     );
   }
@@ -421,17 +421,17 @@ export default function DeviceManagement() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
-          <Link to={`/farms/${farmId}`} className="text-gray-500 hover:text-gray-700">
+          <Link to={`/farms/${farmId}`} className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
             <FiArrowLeft size={24} />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-gray-800">{t('devices.title')}</h1>
-            <p className="text-sm text-gray-500">{t('devices.subtitle')}</p>
+            <h1 className="text-2xl font-bold text-gray-800 dark:text-white">{t('devices.title')}</h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{t('devices.subtitle')}</p>
           </div>
         </div>
         <button
           onClick={() => setShowDeviceModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+          className="flex items-center gap-2 px-4 py-2 bg-green-600 dark:bg-green-500 text-white rounded-lg hover:bg-green-700 dark:hover:bg-green-600 transition-colors"
         >
           <FiPlus size={18} />
           {t('devices.addDevice')}
@@ -440,13 +440,13 @@ export default function DeviceManagement() {
 
       {/* Devices List */}
       {devices.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-lg p-12 text-center">
-          <FiCpu className="mx-auto text-gray-300 mb-4" size={64} />
-          <h3 className="text-xl font-semibold text-gray-600 mb-2">{t('devices.noDevices')}</h3>
-          <p className="text-gray-500 mb-4">{t('devices.noDevicesDesc')}</p>
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-12 text-center transition-colors">
+          <FiCpu className="mx-auto text-gray-300 dark:text-gray-600 mb-4" size={64} />
+          <h3 className="text-xl font-semibold text-gray-600 dark:text-gray-300 mb-2">{t('devices.noDevices')}</h3>
+          <p className="text-gray-500 dark:text-gray-400 mb-4">{t('devices.noDevicesDesc')}</p>
           <button
             onClick={() => setShowDeviceModal(true)}
-            className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+            className="px-6 py-2 bg-green-600 dark:bg-green-500 text-white rounded-lg hover:bg-green-700 dark:hover:bg-green-600 transition-colors"
           >
             {t('devices.addFirst', 'Add First Device')}
           </button>
@@ -454,9 +454,9 @@ export default function DeviceManagement() {
       ) : (
         <div className="space-y-6">
           {devices.map((device) => (
-            <div key={device.id} className="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div key={device.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden transition-colors">
               {/* Device Header */}
-              <div className="bg-gradient-to-r from-green-600 to-green-700 px-6 py-4">
+              <div className="bg-gradient-to-r from-green-600 to-green-700 dark:from-green-500 dark:to-green-600 px-6 py-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className="p-2 bg-white/20 rounded-lg">
@@ -510,26 +510,26 @@ export default function DeviceManagement() {
                   {/* Sensors Section */}
                   <div>
                     <div className="flex items-center justify-between mb-3">
-                      <h4 className="font-semibold text-gray-700 flex items-center gap-2">
-                        <FiThermometer className="text-blue-500" />
+                      <h4 className="font-semibold text-gray-700 dark:text-gray-200 flex items-center gap-2">
+                        <FiThermometer className="text-blue-500 dark:text-blue-400" />
                         Sensors ({device.sensors?.length || 0})
                       </h4>
                       <button
                         onClick={() => openSensorModal(device)}
-                        className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                        className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-500 flex items-center gap-1 transition-colors"
                       >
                         <FiPlus size={14} />
                         Add Sensor
                       </button>
                     </div>
-                    
+
                     {device.sensors?.length > 0 ? (
                       <div className="space-y-2">
                         {device.sensors.map((sensor) => (
-                          <div key={sensor.id} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                          <div key={sensor.id} className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg transition-colors">
                             <div>
-                              <p className="font-medium text-gray-800">{sensor.sensorName}</p>
-                              <p className="text-xs text-gray-500">
+                              <p className="font-medium text-gray-800 dark:text-white">{sensor.sensorName}</p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">
                                 {sensor.connectionType === 'MODBUS_RTU' || sensor.connectionType === 'MODBUS_TCP' ? (
                                   <>Modbus: Slave {sensor.slaveId}, Reg {sensor.registerAddress}</>
                                 ) : (
@@ -539,12 +539,12 @@ export default function DeviceManagement() {
                               </p>
                             </div>
                             <div className="flex items-center gap-2">
-                              <span className="text-lg font-semibold text-blue-600">
+                              <span className="text-lg font-semibold text-blue-600 dark:text-blue-400">
                                 {sensor.lastReading !== null ? `${sensor.lastReading}${sensor.unit || ''}` : '--'}
                               </span>
                               <button
                                 onClick={() => handleDeleteSensor(sensor.id, sensor.sensorName)}
-                                className="p-1 text-red-500 hover:text-red-700"
+                                className="p-1 text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-500 transition-colors"
                               >
                                 <FiTrash2 size={14} />
                               </button>
@@ -553,33 +553,33 @@ export default function DeviceManagement() {
                         ))}
                       </div>
                     ) : (
-                      <p className="text-sm text-gray-500 italic">No sensors configured</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 italic">No sensors configured</p>
                     )}
                   </div>
 
                   {/* Actuators Section */}
                   <div>
                     <div className="flex items-center justify-between mb-3">
-                      <h4 className="font-semibold text-gray-700 flex items-center gap-2">
-                        <FiPower className="text-purple-500" />
+                      <h4 className="font-semibold text-gray-700 dark:text-gray-200 flex items-center gap-2">
+                        <FiPower className="text-purple-500 dark:text-purple-400" />
                         Actuators ({device.actuators?.length || 0})
                       </h4>
                       <button
                         onClick={() => openActuatorModal(device)}
-                        className="text-sm text-purple-600 hover:text-purple-700 flex items-center gap-1"
+                        className="text-sm text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-500 flex items-center gap-1 transition-colors"
                       >
                         <FiPlus size={14} />
                         Add Actuator
                       </button>
                     </div>
-                    
+
                     {device.actuators?.length > 0 ? (
                       <div className="space-y-2">
                         {device.actuators.map((actuator) => (
-                          <div key={actuator.id} className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+                          <div key={actuator.id} className="flex items-center justify-between p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg transition-colors">
                             <div>
-                              <p className="font-medium text-gray-800">{actuator.actuatorName}</p>
-                              <p className="text-xs text-gray-500">
+                              <p className="font-medium text-gray-800 dark:text-white">{actuator.actuatorName}</p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">
                                 {actuator.connectionType === 'MODBUS_RTU' ? (
                                   <>Modbus: Slave {actuator.slaveId}, Coil {actuator.registerAddress}</>
                                 ) : (
@@ -590,15 +590,15 @@ export default function DeviceManagement() {
                             </div>
                             <div className="flex items-center gap-2">
                               <span className={`px-2 py-1 text-xs font-semibold rounded ${
-                                actuator.currentState === 'ON' 
-                                  ? 'bg-green-100 text-green-700' 
-                                  : 'bg-gray-100 text-gray-600'
+                                actuator.currentState === 'ON'
+                                  ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200'
+                                  : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300'
                               }`}>
                                 {actuator.currentState || 'OFF'}
                               </span>
                               <button
                                 onClick={() => handleDeleteActuator(actuator.id, actuator.actuatorName)}
-                                className="p-1 text-red-500 hover:text-red-700"
+                                className="p-1 text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-500 transition-colors"
                               >
                                 <FiTrash2 size={14} />
                               </button>
@@ -607,7 +607,7 @@ export default function DeviceManagement() {
                         ))}
                       </div>
                     ) : (
-                      <p className="text-sm text-gray-500 italic">No actuators configured</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 italic">No actuators configured</p>
                     )}
                   </div>
                 </div>
@@ -621,14 +621,14 @@ export default function DeviceManagement() {
           ADD DEVICE MODAL
           ========================================== */}
       {showDeviceModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 dark:bg-black/75 flex items-center justify-center z-50 p-4 overflow-y-auto transition-colors">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto transition-colors">
             <div className="p-6">
-              <h2 className="text-xl font-bold text-gray-800 mb-4">{t('devices.registerNew', 'Register New Device')}</h2>
+              <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-4">{t('devices.registerNew', 'Register New Device')}</h2>
               
               <form onSubmit={handleAddDevice} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                     {t('devices.macAddress')} *
                   </label>
                   <input
@@ -636,13 +636,13 @@ export default function DeviceManagement() {
                     value={deviceForm.macAddress}
                     onChange={(e) => setDeviceForm({ ...deviceForm, macAddress: e.target.value.toUpperCase() })}
                     placeholder="e.g., 2C:CF:67:90:5C:79"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:text-white transition-colors"
                   />
-                  <p className="text-xs text-gray-500 mt-1">Found on Raspberry Pi using: cat /sys/class/net/eth0/address</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Found on Raspberry Pi using: cat /sys/class/net/eth0/address</p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                     {t('devices.deviceName')} *
                   </label>
                   <input
@@ -650,18 +650,18 @@ export default function DeviceManagement() {
                     value={deviceForm.deviceName}
                     onChange={(e) => setDeviceForm({ ...deviceForm, deviceName: e.target.value })}
                     placeholder="e.g., Greenhouse Controller"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:text-white transition-colors"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                     {t('devices.deviceType')}
                   </label>
                   <select
                     value={deviceForm.deviceType}
                     onChange={(e) => setDeviceForm({ ...deviceForm, deviceType: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:text-white transition-colors"
                   >
                     {DEVICE_TYPES.map((type) => (
                       <option key={type.value} value={type.value}>{type.label}</option>
@@ -673,13 +673,13 @@ export default function DeviceManagement() {
                   <button
                     type="button"
                     onClick={() => setShowDeviceModal(false)}
-                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                    className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                    className="flex-1 px-4 py-2 bg-green-600 dark:bg-green-500 text-white rounded-lg hover:bg-green-700 dark:hover:bg-green-600 transition-colors"
                   >
                     Register Device
                   </button>

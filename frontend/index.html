@@ -4,7 +4,26 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>frontend</title>
+    <title>EcoFarmLogix - Smart Farm Monitoring</title>
+
+    <!-- Theme initialization script - prevents flash of wrong theme -->
+    <script>
+      (function() {
+        try {
+          const stored = JSON.parse(localStorage.getItem('ecofarm-theme') || '{}');
+          const theme = stored.state?.theme || 'light';
+          const root = document.documentElement;
+
+          if (theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            root.classList.add('dark');
+          } else {
+            root.classList.remove('dark');
+          }
+        } catch (e) {
+          console.error('Error initializing theme:', e);
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

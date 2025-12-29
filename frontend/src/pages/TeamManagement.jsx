@@ -119,7 +119,7 @@ export default function TeamManagement() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 dark:border-green-400"></div>
       </div>
     );
   }
@@ -129,13 +129,13 @@ export default function TeamManagement() {
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-4">
-          <Link to={`/farms/${farmId}`} className="p-2 hover:bg-gray-100 rounded-lg">
+          <Link to={`/farms/${farmId}`} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
             <FiArrowLeft size={20} />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-gray-800">{t('team.title')}</h1>
-            <p className="text-gray-500 text-sm">
-              {canInviteUsers 
+            <h1 className="text-2xl font-bold text-gray-800 dark:text-white">{t('team.title')}</h1>
+            <p className="text-gray-500 dark:text-gray-400 text-sm">
+              {canInviteUsers
                 ? t('team.subtitle', 'Manage team members and permissions')
                 : t('team.viewOnly', 'View team members')
               }
@@ -145,7 +145,7 @@ export default function TeamManagement() {
         {canInviteUsers && (
           <button
             onClick={() => setShowInviteModal(true)}
-            className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+            className="flex items-center gap-2 bg-green-600 dark:bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-700 dark:hover:bg-green-600 transition-colors"
           >
             <FiPlus size={18} />
             {t('team.addMember')}
@@ -155,11 +155,11 @@ export default function TeamManagement() {
 
       {/* Team List */}
       {team.length === 0 ? (
-        <div className="bg-white rounded-xl shadow p-12 text-center">
-          <FiUsers className="mx-auto text-gray-300 mb-4" size={64} />
-          <h2 className="text-xl font-semibold text-gray-700 mb-2">{t('team.noMembers', 'No team members yet')}</h2>
-          <p className="text-gray-500 mb-6">
-            {canInviteUsers 
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-12 text-center transition-colors">
+          <FiUsers className="mx-auto text-gray-300 dark:text-gray-600 mb-4" size={64} />
+          <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-2">{t('team.noMembers', 'No team members yet')}</h2>
+          <p className="text-gray-500 dark:text-gray-400 mb-6">
+            {canInviteUsers
               ? t('team.noMembersDesc', 'Add team members to collaborate on this farm')
               : t('team.noMembersViewOnly', 'No team members have been added to this farm')
             }
@@ -167,48 +167,48 @@ export default function TeamManagement() {
           {canInviteUsers && (
             <button
               onClick={() => setShowInviteModal(true)}
-              className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700"
+              className="bg-green-600 dark:bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-700 dark:hover:bg-green-600 transition-colors"
             >
               {t('team.inviteFirst', 'Add First Member')}
             </button>
           )}
         </div>
       ) : (
-        <div className="bg-white rounded-xl shadow overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow overflow-hidden transition-colors">
           <table className="w-full">
-            <thead className="bg-gray-50">
+            <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   {t('team.member', 'Member')}
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   {t('team.role')}
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   {t('team.joinedAt', 'Joined')}
                 </th>
                 {(canChangeRoles || canRemoveUsers) && (
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     {t('common.actions')}
                   </th>
                 )}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
               {team.map((member) => (
-                <tr key={member.id}>
+                <tr key={member.id} className="dark:hover:bg-gray-700/50 transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
-                      <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-                        <span className="text-gray-600 font-medium">
+                      <div className="w-10 h-10 bg-gray-200 dark:bg-gray-600 rounded-full flex items-center justify-center">
+                        <span className="text-gray-600 dark:text-gray-200 font-medium">
                           {(member.fullName || member.user?.fullName)?.charAt(0) || 'U'}
                         </span>
                       </div>
                       <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">
+                        <div className="text-sm font-medium text-gray-900 dark:text-white">
                           {member.fullName || member.user?.fullName || t('team.unknownUser', 'Unknown User')}
                         </div>
-                        <div className="text-sm text-gray-500">
+                        <div className="text-sm text-gray-500 dark:text-gray-400">
                           {member.email || member.user?.email}
                         </div>
                       </div>
@@ -219,7 +219,7 @@ export default function TeamManagement() {
                       <select
                         value={member.role}
                         onChange={(e) => handleRoleChange(member.id, e.target.value)}
-                        className="text-sm border border-gray-300 rounded-lg px-2 py-1"
+                        className="text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-2 py-1 dark:bg-gray-700 dark:text-white transition-colors"
                       >
                         {FARM_ROLES.map((role) => (
                           <option key={role.value} value={role.value}>
@@ -233,7 +233,7 @@ export default function TeamManagement() {
                       </span>
                     )}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                     {new Date(member.invitedAt || member.createdAt).toLocaleDateString()}
                   </td>
                   {(canChangeRoles || canRemoveUsers) && (
@@ -241,7 +241,7 @@ export default function TeamManagement() {
                       {canRemoveUsers && member.role !== 'OWNER' && (
                         <button
                           onClick={() => handleRemoveMember(member.id, member.fullName || member.user?.fullName)}
-                          className="text-red-600 hover:text-red-900"
+                          className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-500 transition-colors"
                           title={t('team.remove', 'Remove')}
                         >
                           <FiTrash2 size={18} />
@@ -258,27 +258,27 @@ export default function TeamManagement() {
 
       {/* Add Member Modal */}
       {showInviteModal && canInviteUsers && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 dark:bg-black/75 flex items-center justify-center z-50 p-4 transition-colors">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto transition-colors">
             <div className="p-6">
-              <h2 className="text-xl font-bold text-gray-800 mb-4">
+              <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-4">
                 {t('team.inviteMember', 'Add Team Member')}
               </h2>
 
               <form onSubmit={handleInvite} className="space-y-4">
                 {/* Full Name */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                     {t('auth.fullName')} *
                   </label>
                   <div className="relative">
-                    <FiUser className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <FiUser className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" />
                     <input
                       type="text"
                       value={inviteForm.fullName}
                       onChange={(e) => setInviteForm({ ...inviteForm, fullName: e.target.value })}
                       placeholder={t('team.fullNamePlaceholder', 'Enter full name')}
-                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                      className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:text-white transition-colors"
                       required
                     />
                   </div>
@@ -286,17 +286,17 @@ export default function TeamManagement() {
 
                 {/* Email */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                     {t('auth.email')} *
                   </label>
                   <div className="relative">
-                    <FiMail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <FiMail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" />
                     <input
                       type="email"
                       value={inviteForm.email}
                       onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
                       placeholder={t('team.emailPlaceholder', 'Enter email address')}
-                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                      className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:text-white transition-colors"
                       required
                     />
                   </div>
@@ -304,50 +304,50 @@ export default function TeamManagement() {
 
                 {/* Phone (Optional) */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                     {t('auth.phone')} ({t('common.optional', 'Optional')})
                   </label>
                   <div className="relative">
-                    <FiPhone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <FiPhone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" />
                     <input
                       type="tel"
                       value={inviteForm.phone}
                       onChange={(e) => setInviteForm({ ...inviteForm, phone: e.target.value })}
                       placeholder={t('team.phonePlaceholder', 'Enter phone number')}
-                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                      className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:text-white transition-colors"
                     />
                   </div>
                 </div>
 
                 {/* Password */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                     {t('auth.password')} *
                   </label>
                   <div className="relative">
-                    <FiLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <FiLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" />
                     <input
                       type="password"
                       value={inviteForm.password}
                       onChange={(e) => setInviteForm({ ...inviteForm, password: e.target.value })}
                       placeholder={t('team.passwordPlaceholder', 'Set password for member')}
-                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                      className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:text-white transition-colors"
                       required
                       minLength={6}
                     />
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">{t('auth.passwordHint', 'Minimum 6 characters')}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{t('auth.passwordHint', 'Minimum 6 characters')}</p>
                 </div>
 
                 {/* Role */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                     {t('team.role')} *
                   </label>
                   <select
                     value={inviteForm.role}
                     onChange={(e) => setInviteForm({ ...inviteForm, role: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:text-white transition-colors"
                   >
                     {FARM_ROLES.map((role) => (
                       <option key={role.value} value={role.value}>
@@ -358,9 +358,9 @@ export default function TeamManagement() {
                 </div>
 
                 {/* Role Permissions Info */}
-                <div className="bg-gray-50 p-3 rounded-lg">
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">{t('team.rolePermissions', 'Role Permissions')}:</h4>
-                  <ul className="text-xs text-gray-600 space-y-1">
+                <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg transition-colors">
+                  <h4 className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">{t('team.rolePermissions', 'Role Permissions')}:</h4>
+                  <ul className="text-xs text-gray-600 dark:text-gray-300 space-y-1">
                     <li>• <strong>{t('team.roles.MANAGER', 'Manager')}</strong>: {t('team.managerDesc', 'Can manage automation, view team')}</li>
                     <li>• <strong>{t('team.roles.OPERATOR', 'Operator')}</strong>: {t('team.operatorDesc', 'Can control actuators')}</li>
                     <li>• <strong>{t('team.roles.VIEWER', 'Viewer')}</strong>: {t('team.viewerDesc', 'Can only view data')}</li>
@@ -372,14 +372,14 @@ export default function TeamManagement() {
                   <button
                     type="button"
                     onClick={() => setShowInviteModal(false)}
-                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                    className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                   >
                     {t('common.cancel')}
                   </button>
                   <button
                     type="submit"
                     disabled={inviting}
-                    className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center justify-center gap-2"
+                    className="flex-1 px-4 py-2 bg-green-600 dark:bg-green-500 text-white rounded-lg hover:bg-green-700 dark:hover:bg-green-600 disabled:opacity-50 flex items-center justify-center gap-2 transition-colors"
                   >
                     {inviting ? (
                       <>

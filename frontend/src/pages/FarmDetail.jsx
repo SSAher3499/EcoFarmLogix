@@ -212,13 +212,13 @@ export default function FarmDetail() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600" />
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 dark:border-primary-400" />
       </div>
     );
   }
 
   if (!dashboard) {
-    return <div className="text-center text-gray-500">{t('farm.notFound', 'Farm not found')}</div>;
+    return <div className="text-center text-gray-500 dark:text-gray-400">{t('farm.notFound', 'Farm not found')}</div>;
   }
 
   // Get user's role for this farm
@@ -230,7 +230,7 @@ export default function FarmDetail() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold text-gray-800">
+            <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
               {dashboard.farm?.name}
             </h1>
             {/* Role Badge */}
@@ -242,7 +242,7 @@ export default function FarmDetail() {
               {getRoleDisplayName(farmUserRole)}
             </span>
           </div>
-          <p className="text-gray-500">
+          <p className="text-gray-500 dark:text-gray-400">
             {dashboard.farm?.location || dashboard.farm?.farmType}
             {dashboard.farm?.owner && userRole === "SUPER_ADMIN" && (
               <span className="ml-2 text-sm">
@@ -298,7 +298,7 @@ export default function FarmDetail() {
           <button
             type="button"
             onClick={loadDashboard}
-            className="flex items-center gap-2 text-gray-600 hover:text-primary-600"
+            className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
           >
             <FiRefreshCw size={18} />
             {t('common.refresh')}
@@ -308,33 +308,33 @@ export default function FarmDetail() {
 
       {/* TOP STATS (full width) */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-        <div className="bg-white rounded-lg shadow p-4">
-          <p className="text-sm text-gray-500">{t('stats.totalDevices', 'Total Devices')}</p>
-          <p className="text-2xl font-bold">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 transition-colors">
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t('stats.totalDevices', 'Total Devices')}</p>
+          <p className="text-2xl font-bold dark:text-white">
             {dashboard.stats?.totalDevices ?? 0}
           </p>
         </div>
-        <div className="bg-white rounded-lg shadow p-4">
-          <p className="text-sm text-gray-500">{t('common.online')}</p>
-          <p className="text-2xl font-bold text-green-600">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 transition-colors">
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t('common.online')}</p>
+          <p className="text-2xl font-bold text-green-600 dark:text-green-400">
             {dashboard.stats?.onlineDevices ?? 0}
           </p>
         </div>
-        <div className="bg-white rounded-lg shadow p-4">
-          <p className="text-sm text-gray-500">{t('sensors.title')}</p>
-          <p className="text-2xl font-bold">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 transition-colors">
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t('sensors.title')}</p>
+          <p className="text-2xl font-bold dark:text-white">
             {dashboard.stats?.totalSensors ?? 0}
           </p>
         </div>
-        <div className="bg-white rounded-lg shadow p-4">
-          <p className="text-sm text-gray-500">{t('actuators.title')}</p>
-          <p className="text-2xl font-bold">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 transition-colors">
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t('actuators.title')}</p>
+          <p className="text-2xl font-bold dark:text-white">
             {dashboard.stats?.totalActuators ?? 0}
           </p>
         </div>
-        <div className="bg-white rounded-lg shadow p-4">
-          <p className="text-sm text-gray-500">{t('stats.teamMembers', 'Team Members')}</p>
-          <p className="text-2xl font-bold">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 transition-colors">
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t('stats.teamMembers', 'Team Members')}</p>
+          <p className="text-2xl font-bold dark:text-white">
             {dashboard.stats?.teamMembers ?? 0}
           </p>
         </div>
@@ -346,18 +346,18 @@ export default function FarmDetail() {
         <div className="lg:col-span-3">
           {/* Sensor Readings */}
           <div className="mb-6">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
               📊 {t('farm.liveData', 'Sensor Readings')}
             </h2>
 
             {allSensors.length === 0 ? (
-              <div className="bg-white rounded-lg shadow p-6 text-center text-gray-500">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 text-center text-gray-500 dark:text-gray-400 transition-colors">
                 {t('sensors.noSensors', 'No sensors configured')}
                 {canManageDevices && (
                   <div className="mt-2">
                     <Link
                       to={`/farms/${farmId}/devices`}
-                      className="text-blue-600 hover:underline"
+                      className="text-blue-600 dark:text-blue-400 hover:underline"
                     >
                       {t('sensors.addSensor')} →
                     </Link>
@@ -383,28 +383,28 @@ export default function FarmDetail() {
                   return (
                     <div
                       key={sensor.id}
-                      className="bg-white rounded-lg shadow p-4"
+                      className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 transition-colors"
                     >
                       <div className="flex items-center gap-3 mb-3">
                         <div className={`p-2 rounded-lg ${colorClass}`}>
                           <Icon size={20} />
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-800">
+                          <p className="text-sm font-medium text-gray-800 dark:text-white">
                             {sensor.sensorName}
                           </p>
-                          <p className="text-xs text-gray-500">
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
                             {sensor.deviceName}
                           </p>
                         </div>
                       </div>
 
-                      <div className="text-3xl font-bold text-gray-800">
+                      <div className="text-3xl font-bold text-gray-800 dark:text-white">
                         {reading}
                       </div>
 
                       {sensor.lastReadingAt && (
-                        <p className="text-xs text-gray-400 mt-1">
+                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
                           {t('sensors.lastReading', 'Updated')}:{" "}
                           {new Date(sensor.lastReadingAt).toLocaleTimeString()}
                         </p>
@@ -418,23 +418,23 @@ export default function FarmDetail() {
 
           {/* Actuator Controls */}
           <div className="mb-6">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
               ⚡ {t('actuators.title')}
               {!canControlActuators && (
-                <span className="ml-2 text-sm font-normal text-gray-500">
+                <span className="ml-2 text-sm font-normal text-gray-500 dark:text-gray-400">
                   ({t('actuators.viewOnly', 'View only')})
                 </span>
               )}
             </h2>
 
             {allActuators.length === 0 ? (
-              <div className="bg-white rounded-lg shadow p-6 text-center text-gray-500">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 text-center text-gray-500 dark:text-gray-400 transition-colors">
                 {t('actuators.noActuators', 'No actuators configured')}
                 {canManageDevices && (
                   <div className="mt-2">
                     <Link
                       to={`/farms/${farmId}/devices`}
-                      className="text-blue-600 hover:underline"
+                      className="text-blue-600 dark:text-blue-400 hover:underline"
                     >
                       {t('actuators.addActuator')} →
                     </Link>
@@ -446,14 +446,14 @@ export default function FarmDetail() {
                 {allActuators.map((actuator) => (
                   <div
                     key={actuator.id}
-                    className="bg-white rounded-lg shadow p-4"
+                    className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 transition-colors"
                   >
                     <div className="flex items-center justify-between mb-3">
                       <div>
-                        <p className="font-medium text-gray-800">
+                        <p className="font-medium text-gray-800 dark:text-white">
                           {actuator.actuatorName}
                         </p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
                           {t(`actuators.types.${actuator.actuatorType}`, actuator.actuatorType)}
                         </p>
                       </div>
@@ -461,7 +461,7 @@ export default function FarmDetail() {
                         className={`w-3 h-3 rounded-full ${
                           actuator.currentState === "ON"
                             ? "bg-green-500"
-                            : "bg-gray-300"
+                            : "bg-gray-300 dark:bg-gray-600"
                         }`}
                       />
                     </div>
@@ -518,26 +518,26 @@ export default function FarmDetail() {
           {/* Recent Alerts */}
           {dashboard.recentAlerts?.length > 0 && (
             <div className="mb-6">
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">
+              <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
                 🚨 {t('alerts.title')}
               </h2>
-              <div className="bg-white rounded-lg shadow divide-y">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow divide-y divide-gray-200 dark:divide-gray-700 transition-colors">
                 {dashboard.recentAlerts.slice(0, 5).map((alert) => (
                   <div key={alert.id} className="p-4 flex items-center gap-4">
                     <span
                       className={`px-2 py-1 text-xs rounded ${
                         alert.severity === "CRITICAL"
-                          ? "bg-red-100 text-red-700"
-                          : "bg-yellow-100 text-yellow-700"
+                          ? "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-200"
+                          : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-200"
                       }`}
                     >
                       {t(`alerts.${alert.severity.toLowerCase()}`, alert.severity)}
                     </span>
                     <div className="flex-1">
-                      <p className="font-medium text-gray-800">{alert.title}</p>
-                      <p className="text-sm text-gray-500">{alert.message}</p>
+                      <p className="font-medium text-gray-800 dark:text-white">{alert.title}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">{alert.message}</p>
                     </div>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-gray-400 dark:text-gray-500">
                       {new Date(alert.createdAt).toLocaleString()}
                     </p>
                   </div>
