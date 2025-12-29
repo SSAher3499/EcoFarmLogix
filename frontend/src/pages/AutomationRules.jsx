@@ -201,16 +201,16 @@ export default function AutomationRules() {
   }
 
   return (
-    <div>
+    <div className="px-4 md:px-0">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center gap-4">
-          <Link to={`/farms/${farmId}`} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-4 md:mb-6">
+        <div className="flex items-center gap-3 md:gap-4">
+          <Link to={`/farms/${farmId}`} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center">
             <FiArrowLeft size={20} />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-gray-800 dark:text-white">{t('automation.title')}</h1>
-            <p className="text-gray-500 dark:text-gray-400 text-sm">
+            <h1 className="text-xl md:text-2xl font-bold text-gray-800 dark:text-white">{t('automation.title')}</h1>
+            <p className="text-gray-500 dark:text-gray-400 text-xs md:text-sm">
               {canCreateAutomation
                 ? t('automation.subtitle', 'Create rules to automate your farm')
                 : t('automation.viewOnly', 'View automation rules (read-only)')
@@ -221,7 +221,7 @@ export default function AutomationRules() {
         {canCreateAutomation && (
           <button
             onClick={openNewRuleModal}
-            className="flex items-center gap-2 bg-green-600 dark:bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-700 dark:hover:bg-green-600 transition-colors"
+            className="flex items-center justify-center gap-2 bg-green-600 dark:bg-green-500 text-white px-4 py-3 md:py-2 min-h-[44px] rounded-lg hover:bg-green-700 dark:hover:bg-green-600 transition-colors whitespace-nowrap"
           >
             <FiPlus size={18} />
             {t('automation.addRule')}
@@ -231,10 +231,10 @@ export default function AutomationRules() {
 
       {/* Rules List */}
       {rules.length === 0 ? (
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-12 text-center transition-colors">
-          <div className="text-6xl mb-4">🤖</div>
-          <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-2">{t('automation.noRules')}</h2>
-          <p className="text-gray-500 dark:text-gray-400 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6 md:p-12 text-center transition-colors">
+          <div className="text-5xl md:text-6xl mb-4">🤖</div>
+          <h2 className="text-lg md:text-xl font-semibold text-gray-700 dark:text-gray-200 mb-2">{t('automation.noRules')}</h2>
+          <p className="text-sm md:text-base text-gray-500 dark:text-gray-400 mb-6">
             {canCreateAutomation
               ? t('automation.noRulesDesc', 'Create your first rule to automate actuators based on sensor readings')
               : t('automation.noRulesViewOnly', 'No automation rules have been created for this farm')
@@ -243,29 +243,29 @@ export default function AutomationRules() {
           {canCreateAutomation && (
             <button
               onClick={openNewRuleModal}
-              className="bg-green-600 dark:bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-700 dark:hover:bg-green-600 transition-colors"
+              className="bg-green-600 dark:bg-green-500 text-white px-6 py-3 md:py-2 min-h-[44px] rounded-lg hover:bg-green-700 dark:hover:bg-green-600 transition-colors"
             >
               {t('automation.createFirst', 'Create First Rule')}
             </button>
           )}
         </div>
       ) : (
-        <div className="grid gap-4">
+        <div className="grid gap-3 md:gap-4">
           {rules.map((rule) => (
-            <div key={rule.id} className="bg-white dark:bg-gray-800 rounded-xl shadow p-6 transition-colors">
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <FiZap className={rule.isEnabled ? 'text-yellow-500 dark:text-yellow-400' : 'text-gray-400 dark:text-gray-600'} size={20} />
-                    <h3 className="text-lg font-semibold text-gray-800 dark:text-white">{rule.name}</h3>
-                    <span className={`px-2 py-1 text-xs rounded-full ${
+            <div key={rule.id} className="bg-white dark:bg-gray-800 rounded-xl shadow p-4 md:p-6 transition-colors">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 md:gap-3 mb-2 flex-wrap">
+                    <FiZap className={rule.isEnabled ? 'text-yellow-500 dark:text-yellow-400' : 'text-gray-400 dark:text-gray-600'} size={18} />
+                    <h3 className="text-base md:text-lg font-semibold text-gray-800 dark:text-white">{rule.name}</h3>
+                    <span className={`px-2 py-1 text-xs rounded-full whitespace-nowrap ${
                       rule.isEnabled ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200' : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300'
                     }`}>
                       {rule.isEnabled ? t('automation.enabled') : t('automation.disabled')}
                     </span>
                   </div>
 
-                  <div className="text-sm text-gray-600 dark:text-gray-300 space-y-1">
+                  <div className="text-xs md:text-sm text-gray-600 dark:text-gray-300 space-y-1">
                     <p>
                       <span className="font-medium">{t('automation.if', 'IF')}</span>{' '}
                       <span className="text-blue-600 dark:text-blue-400">{rule.sensor?.sensorName || t('automation.unknownSensor', 'Unknown Sensor')}</span>{' '}
@@ -290,36 +290,36 @@ export default function AutomationRules() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-shrink-0">
                   {/* Toggle - requires edit permission */}
                   {canEditAutomation && (
                     <button
                       onClick={() => handleToggle(rule.id)}
-                      className={`p-2 rounded-lg ${
-                        rule.isEnabled ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'
+                      className={`p-2 min-h-[44px] min-w-[44px] rounded-lg flex items-center justify-center ${
+                        rule.isEnabled ? 'bg-green-100 text-green-600 dark:bg-green-900/20 dark:text-green-400' : 'bg-gray-100 text-gray-400 dark:bg-gray-700 dark:text-gray-500'
                       }`}
                       title={rule.isEnabled ? t('automation.disable', 'Disable') : t('automation.enable', 'Enable')}
                     >
                       <FiPower size={18} />
                     </button>
                   )}
-                  
+
                   {/* Edit - requires edit permission */}
                   {canEditAutomation && (
                     <button
                       onClick={() => handleEdit(rule)}
-                      className="p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200"
+                      className="p-2 min-h-[44px] min-w-[44px] bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 dark:bg-blue-900/20 dark:text-blue-400 flex items-center justify-center"
                       title={t('common.edit')}
                     >
                       <FiEdit2 size={18} />
                     </button>
                   )}
-                  
+
                   {/* Delete - requires delete permission */}
                   {canDeleteAutomation && (
                     <button
                       onClick={() => handleDelete(rule.id)}
-                      className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200"
+                      className="p-2 min-h-[44px] min-w-[44px] bg-red-100 text-red-600 rounded-lg hover:bg-red-200 dark:bg-red-900/20 dark:text-red-400 flex items-center justify-center"
                       title={t('common.delete')}
                     >
                       <FiTrash2 size={18} />
@@ -334,17 +334,17 @@ export default function AutomationRules() {
 
       {/* Modal - only show if user can create/edit */}
       {showModal && (canCreateAutomation || canEditAutomation) && (
-        <div className="fixed inset-0 bg-black/50 dark:bg-black/75 flex items-center justify-center z-50 p-4 transition-colors">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto transition-colors">
-            <div className="p-6">
-              <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-4">
+        <div className="fixed inset-0 bg-black/50 dark:bg-black/75 flex items-center justify-center z-50 p-0 md:p-4 overflow-y-auto transition-colors">
+          <div className="bg-white dark:bg-gray-800 w-full h-full md:h-auto md:rounded-xl shadow-xl md:max-w-md md:max-h-[90vh] overflow-y-auto transition-colors">
+            <div className="p-4 md:p-6">
+              <h2 className="text-lg md:text-xl font-bold text-gray-800 dark:text-white mb-4">
                 {editingRule ? t('automation.editRule', 'Edit Rule') : t('automation.createRule', 'Create Automation Rule')}
               </h2>
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 {/* Rule Name */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                  <label className="block text-sm md:text-base font-medium text-gray-700 dark:text-gray-200 mb-1">
                     {t('automation.ruleName')} *
                   </label>
                   <input
@@ -352,7 +352,7 @@ export default function AutomationRules() {
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     placeholder={t('automation.ruleNamePlaceholder', 'e.g., High Temp Fan Control')}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:text-white transition-colors"
+                    className="w-full px-4 py-3 text-base min-h-[44px] border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:text-white transition-colors"
                   />
                 </div>
 
@@ -461,17 +461,17 @@ export default function AutomationRules() {
                 </div>
 
                 {/* Buttons */}
-                <div className="flex gap-3 pt-4">
+                <div className="flex flex-col sm:flex-row gap-3 pt-4">
                   <button
                     type="button"
                     onClick={() => setShowModal(false)}
-                    className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                    className="flex-1 px-4 py-3 md:py-2 min-h-[44px] border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                   >
                     {t('common.cancel')}
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 px-4 py-2 bg-green-600 dark:bg-green-500 text-white rounded-lg hover:bg-green-700 dark:hover:bg-green-600 transition-colors"
+                    className="flex-1 px-4 py-3 md:py-2 min-h-[44px] bg-green-600 dark:bg-green-500 text-white rounded-lg hover:bg-green-700 dark:hover:bg-green-600 transition-colors"
                   >
                     {editingRule ? t('automation.updateRule', 'Update Rule') : t('automation.createRule', 'Create Rule')}
                   </button>

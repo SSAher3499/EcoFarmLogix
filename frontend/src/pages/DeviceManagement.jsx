@@ -417,21 +417,21 @@ export default function DeviceManagement() {
   }
 
   return (
-    <div>
+    <div className="px-4 md:px-0">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <Link to={`/farms/${farmId}`} className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4 md:mb-6">
+        <div className="flex items-center gap-3 md:gap-4">
+          <Link to={`/farms/${farmId}`} className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center">
             <FiArrowLeft size={24} />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-gray-800 dark:text-white">{t('devices.title')}</h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">{t('devices.subtitle')}</p>
+            <h1 className="text-xl md:text-2xl font-bold text-gray-800 dark:text-white">{t('devices.title')}</h1>
+            <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400">{t('devices.subtitle')}</p>
           </div>
         </div>
         <button
           onClick={() => setShowDeviceModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-green-600 dark:bg-green-500 text-white rounded-lg hover:bg-green-700 dark:hover:bg-green-600 transition-colors"
+          className="flex items-center justify-center gap-2 px-4 py-3 md:py-2 min-h-[44px] bg-green-600 dark:bg-green-500 text-white rounded-lg hover:bg-green-700 dark:hover:bg-green-600 transition-colors"
         >
           <FiPlus size={18} />
           {t('devices.addDevice')}
@@ -440,44 +440,44 @@ export default function DeviceManagement() {
 
       {/* Devices List */}
       {devices.length === 0 ? (
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-12 text-center transition-colors">
-          <FiCpu className="mx-auto text-gray-300 dark:text-gray-600 mb-4" size={64} />
-          <h3 className="text-xl font-semibold text-gray-600 dark:text-gray-300 mb-2">{t('devices.noDevices')}</h3>
-          <p className="text-gray-500 dark:text-gray-400 mb-4">{t('devices.noDevicesDesc')}</p>
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 md:p-12 text-center transition-colors">
+          <FiCpu className="mx-auto text-gray-300 dark:text-gray-600 mb-4" size={48} />
+          <h3 className="text-lg md:text-xl font-semibold text-gray-600 dark:text-gray-300 mb-2">{t('devices.noDevices')}</h3>
+          <p className="text-sm md:text-base text-gray-500 dark:text-gray-400 mb-4">{t('devices.noDevicesDesc')}</p>
           <button
             onClick={() => setShowDeviceModal(true)}
-            className="px-6 py-2 bg-green-600 dark:bg-green-500 text-white rounded-lg hover:bg-green-700 dark:hover:bg-green-600 transition-colors"
+            className="px-6 py-3 md:py-2 min-h-[44px] bg-green-600 dark:bg-green-500 text-white rounded-lg hover:bg-green-700 dark:hover:bg-green-600 transition-colors"
           >
             {t('devices.addFirst', 'Add First Device')}
           </button>
         </div>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-4 md:space-y-6">
           {devices.map((device) => (
             <div key={device.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden transition-colors">
               {/* Device Header */}
-              <div className="bg-gradient-to-r from-green-600 to-green-700 dark:from-green-500 dark:to-green-600 px-6 py-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="p-2 bg-white/20 rounded-lg">
-                      <FiCpu className="text-white" size={24} />
+              <div className="bg-gradient-to-r from-green-600 to-green-700 dark:from-green-500 dark:to-green-600 px-4 md:px-6 py-3 md:py-4">
+                <div className="flex items-start sm:items-center justify-between gap-3">
+                  <div className="flex items-start sm:items-center gap-3 md:gap-4 flex-1 min-w-0">
+                    <div className="p-2 bg-white/20 rounded-lg flex-shrink-0">
+                      <FiCpu className="text-white" size={20} />
                     </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-white">{device.deviceName}</h3>
-                      <div className="flex items-center gap-3 text-green-100 text-sm">
-                        <span>{device.macAddress}</span>
-                        <span>•</span>
-                        <span>{device.deviceType}</span>
-                        <span>•</span>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-base md:text-lg font-semibold text-white truncate">{device.deviceName}</h3>
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 text-green-100 text-xs md:text-sm">
+                        <span className="truncate">{device.macAddress}</span>
+                        <span className="hidden sm:inline">•</span>
+                        <span className="truncate">{device.deviceType}</span>
+                        <span className="hidden sm:inline">•</span>
                         <span className="flex items-center gap-1">
                           {device.isOnline ? (
                             <>
-                              <FiWifi className="text-green-300" />
+                              <FiWifi className="text-green-300" size={14} />
                               <span className="text-green-300">Online</span>
                             </>
                           ) : (
                             <>
-                              <FiWifiOff className="text-red-300" />
+                              <FiWifiOff className="text-red-300" size={14} />
                               <span className="text-red-300">Offline</span>
                             </>
                           )}
@@ -485,17 +485,17 @@ export default function DeviceManagement() {
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-shrink-0">
                     <button
                       onClick={() => openSerialConfigModal(device)}
-                      className="p-2 bg-white/20 text-white rounded-lg hover:bg-white/30"
+                      className="p-2 min-h-[44px] min-w-[44px] bg-white/20 text-white rounded-lg hover:bg-white/30 flex items-center justify-center"
                       title="Serial Port Configuration"
                     >
                       <FiSettings size={18} />
                     </button>
                     <button
                       onClick={() => handleDeleteDevice(device.id)}
-                      className="p-2 bg-red-500/80 text-white rounded-lg hover:bg-red-600"
+                      className="p-2 min-h-[44px] min-w-[44px] bg-red-500/80 text-white rounded-lg hover:bg-red-600 flex items-center justify-center"
                       title="Delete Device"
                     >
                       <FiTrash2 size={18} />
@@ -505,8 +505,8 @@ export default function DeviceManagement() {
               </div>
 
               {/* Device Content */}
-              <div className="p-6">
-                <div className="grid md:grid-cols-2 gap-6">
+              <div className="p-4 md:p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                   {/* Sensors Section */}
                   <div>
                     <div className="flex items-center justify-between mb-3">
@@ -621,14 +621,14 @@ export default function DeviceManagement() {
           ADD DEVICE MODAL
           ========================================== */}
       {showDeviceModal && (
-        <div className="fixed inset-0 bg-black/50 dark:bg-black/75 flex items-center justify-center z-50 p-4 overflow-y-auto transition-colors">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto transition-colors">
-            <div className="p-6">
-              <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-4">{t('devices.registerNew', 'Register New Device')}</h2>
-              
+        <div className="fixed inset-0 bg-black/50 dark:bg-black/75 flex items-center justify-center z-50 p-0 md:p-4 overflow-y-auto transition-colors">
+          <div className="bg-white dark:bg-gray-800 w-full h-full md:h-auto md:rounded-xl shadow-xl md:max-w-md md:max-h-[90vh] overflow-y-auto transition-colors">
+            <div className="p-4 md:p-6">
+              <h2 className="text-lg md:text-xl font-bold text-gray-800 dark:text-white mb-4">{t('devices.registerNew', 'Register New Device')}</h2>
+
               <form onSubmit={handleAddDevice} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                  <label className="block text-sm md:text-base font-medium text-gray-700 dark:text-gray-200 mb-1">
                     {t('devices.macAddress')} *
                   </label>
                   <input
@@ -636,13 +636,13 @@ export default function DeviceManagement() {
                     value={deviceForm.macAddress}
                     onChange={(e) => setDeviceForm({ ...deviceForm, macAddress: e.target.value.toUpperCase() })}
                     placeholder="e.g., 2C:CF:67:90:5C:79"
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:text-white transition-colors"
+                    className="w-full px-4 py-3 text-base min-h-[44px] border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:text-white transition-colors"
                   />
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Found on Raspberry Pi using: cat /sys/class/net/eth0/address</p>
+                  <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400 mt-1">Found on Raspberry Pi using: cat /sys/class/net/eth0/address</p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                  <label className="block text-sm md:text-base font-medium text-gray-700 dark:text-gray-200 mb-1">
                     {t('devices.deviceName')} *
                   </label>
                   <input
@@ -650,18 +650,18 @@ export default function DeviceManagement() {
                     value={deviceForm.deviceName}
                     onChange={(e) => setDeviceForm({ ...deviceForm, deviceName: e.target.value })}
                     placeholder="e.g., Greenhouse Controller"
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:text-white transition-colors"
+                    className="w-full px-4 py-3 text-base min-h-[44px] border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:text-white transition-colors"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                  <label className="block text-sm md:text-base font-medium text-gray-700 dark:text-gray-200 mb-1">
                     {t('devices.deviceType')}
                   </label>
                   <select
                     value={deviceForm.deviceType}
                     onChange={(e) => setDeviceForm({ ...deviceForm, deviceType: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:text-white transition-colors"
+                    className="w-full px-4 py-3 text-base min-h-[44px] border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:text-white transition-colors"
                   >
                     {DEVICE_TYPES.map((type) => (
                       <option key={type.value} value={type.value}>{type.label}</option>
@@ -669,17 +669,17 @@ export default function DeviceManagement() {
                   </select>
                 </div>
 
-                <div className="flex gap-3 pt-4">
+                <div className="flex flex-col sm:flex-row gap-3 pt-4">
                   <button
                     type="button"
                     onClick={() => setShowDeviceModal(false)}
-                    className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                    className="flex-1 px-4 py-3 md:py-2 min-h-[44px] border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 px-4 py-2 bg-green-600 dark:bg-green-500 text-white rounded-lg hover:bg-green-700 dark:hover:bg-green-600 transition-colors"
+                    className="flex-1 px-4 py-3 md:py-2 min-h-[44px] bg-green-600 dark:bg-green-500 text-white rounded-lg hover:bg-green-700 dark:hover:bg-green-600 transition-colors"
                   >
                     Register Device
                   </button>
@@ -694,9 +694,9 @@ export default function DeviceManagement() {
           ADD SENSOR MODAL (WITH FULL MODBUS CONFIG)
           ========================================== */}
       {showSensorModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto my-auto">
-            <div className="p-6">
+        <div className="fixed inset-0 bg-black/50 dark:bg-black/75 flex items-center justify-center z-50 p-0 md:p-4 overflow-y-auto transition-colors">
+          <div className="bg-white dark:bg-gray-800 w-full h-full md:h-auto md:rounded-xl shadow-xl md:max-w-2xl md:max-h-[90vh] overflow-y-auto transition-colors">
+            <div className="p-4 md:p-6">
               <h2 className="text-xl font-bold text-gray-800 mb-1">{t('sensors.addSensor')}</h2>
               <p className="text-sm text-gray-500 mb-4">to {selectedDevice?.deviceName}</p>
               
@@ -1006,9 +1006,9 @@ export default function DeviceManagement() {
           ADD ACTUATOR MODAL (WITH MODBUS SUPPORT)
           ========================================== */}
       {showActuatorModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
+        <div className="fixed inset-0 bg-black/50 dark:bg-black/75 flex items-center justify-center z-50 p-0 md:p-4 overflow-y-auto transition-colors">
+          <div className="bg-white dark:bg-gray-800 w-full h-full md:h-auto md:rounded-xl shadow-xl md:max-w-lg md:max-h-[90vh] overflow-y-auto transition-colors">
+            <div className="p-4 md:p-6">
               <h2 className="text-xl font-bold text-gray-800 mb-1">{t('actuators.addActuator')}</h2>
               <p className="text-sm text-gray-500 mb-4">to {selectedDevice?.deviceName}</p>
               
@@ -1142,9 +1142,9 @@ export default function DeviceManagement() {
           SERIAL PORT CONFIGURATION MODAL
           ========================================== */}
       {showSerialConfigModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
+        <div className="fixed inset-0 bg-black/50 dark:bg-black/75 flex items-center justify-center z-50 p-0 md:p-4 overflow-y-auto transition-colors">
+          <div className="bg-white dark:bg-gray-800 w-full h-full md:h-auto md:rounded-xl shadow-xl md:max-w-lg md:max-h-[90vh] overflow-y-auto transition-colors">
+            <div className="p-4 md:p-6">
               <h2 className="text-xl font-bold text-gray-800 mb-1">{t('serial.title')}</h2>
               <p className="text-sm text-gray-500 mb-4">RS485/Modbus settings for {selectedDevice?.deviceName}</p>
               

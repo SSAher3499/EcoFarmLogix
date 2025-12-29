@@ -30,20 +30,20 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900 transition-colors duration-200">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900 transition-colors duration-200 px-4 py-8">
       {/* Language Switcher and Theme Toggle in top right */}
-      <div className="absolute top-4 right-4 flex items-center gap-2">
+      <div className="absolute top-2 right-2 md:top-4 md:right-4 flex items-center gap-1 md:gap-2">
         <LanguageSwitcher />
         <ThemeToggle />
       </div>
 
-      <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-md w-full max-w-md transition-colors duration-200">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-primary-600 dark:text-primary-400">🌱 EcoFarmLogix</h1>
-          <p className="text-gray-600 dark:text-gray-300 mt-2">{t('app.tagline', 'Smart Farm Monitoring System')}</p>
+      <div className="bg-white dark:bg-gray-800 p-6 md:p-8 rounded-lg shadow-md w-full max-w-md transition-colors duration-200">
+        <div className="text-center mb-6 md:mb-8">
+          <h1 className="text-2xl md:text-3xl font-bold text-primary-600 dark:text-primary-400">🌱 EcoFarmLogix</h1>
+          <p className="text-sm md:text-base text-gray-600 dark:text-gray-300 mt-2">{t('app.tagline', 'Smart Farm Monitoring System')}</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               {t('auth.email')}
@@ -53,7 +53,7 @@ export default function Login() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-colors"
+              className="w-full px-4 py-3 min-h-[44px] text-base border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-colors"
               placeholder="farmer@example.com"
             />
           </div>
@@ -67,7 +67,7 @@ export default function Login() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-colors"
+              className="w-full px-4 py-3 min-h-[44px] text-base border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-colors"
               placeholder="••••••••"
             />
           </div>
@@ -75,15 +75,15 @@ export default function Login() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-primary-600 dark:bg-primary-500 text-white py-2 px-4 rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-primary-600 dark:bg-primary-500 text-white py-3 px-4 rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] font-medium"
           >
             {loading ? t('common.loading') : t('auth.login')}
           </button>
         </form>
 
-        <p className="text-center mt-6 text-gray-600 dark:text-gray-300">
+        <p className="text-center mt-4 md:mt-6 text-sm md:text-base text-gray-600 dark:text-gray-300">
           {t('auth.noAccount')}{' '}
-          <Link to="/register" className="text-primary-600 dark:text-primary-400 hover:underline">
+          <Link to="/register" className="text-primary-600 dark:text-primary-400 hover:underline font-medium">
             {t('auth.register')}
           </Link>
         </p>
