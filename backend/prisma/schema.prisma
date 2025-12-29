@@ -34,6 +34,7 @@ model User {
   farmAccess    FarmUser[]
   actionLogs    ActionLog[]
   refreshTokens RefreshToken[]
+  schedules     Schedule[]
 
   @@map("users")
 }
@@ -115,6 +116,7 @@ model Farm {
   alerts          Alert[]
   automationRules AutomationRule[]
   actionLogs      ActionLog[]
+  schedules       Schedule[]
 
   @@map("farms")
 }
@@ -279,6 +281,7 @@ model Actuator {
   device          Device           @relation(fields: [deviceId], references: [id], onDelete: Cascade)
   actionLogs      ActionLog[]
   automationRules AutomationRule[]
+  schedules       Schedule[]
 
   @@map("actuators")
 }
@@ -417,4 +420,48 @@ enum ActionSource {
   SCHEDULE
   SYSTEM
   DEVICE
+}
+
+// ==========================================
+// SCHEDULE MANAGEMENT
+// ==========================================
+
+model Schedule {
+  id            String       @id @default(uuid())
+  farmId        String       @map("farm_id")
+  actuatorId    String       @map("actuator_id")
+  name          String
+  description   String?
+
+  // Schedule Configuration
+  scheduleType  ScheduleType @default(DAILY) @map("schedule_type")
+  time          String       // Format: "HH:MM" (24-hour)
+  daysOfWeek    Int[]        @default([0,1,2,3,4,5,6]) @map("days_of_week") // 0=Sunday, 6=Saturday
+
+  // Action
+  action        String       // "ON" or "OFF"
+  duration      Int?         // Optional: auto turn off after X minutes
+
+  // Status
+  isEnabled     Boolean      @default(true) @map("is_enabled")
+  lastRunAt     DateTime?    @map("last_run_at")
+  nextRunAt     DateTime?    @map("next_run_at")
+
+  createdAt     DateTime     @default(now()) @map("created_at")
+  updatedAt     DateTime     @updatedAt @map("updated_at")
+  createdById   String       @map("created_by_id")
+
+  // Relations
+  farm          Farm         @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  actuator      Actuator     @relation(fields: [actuatorId], references: [id], onDelete: Cascade)
+  createdBy     User         @relation(fields: [createdById], references: [id])
+
+  @@map("schedules")
+}
+
+enum ScheduleType {
+  ONCE
+  DAILY
+  WEEKLY
+  CUSTOM
 }

@@ -13,6 +13,7 @@ import AddFarm from './pages/AddFarm';
 import AutomationRules from './pages/AutomationRules';
 import DeviceManagement from './pages/DeviceManagement';
 import TeamManagement from './pages/TeamManagement';
+import Schedules from './pages/Schedules';
 
 // Components
 import ProtectedRoute from './components/common/ProtectedRoute';
@@ -94,6 +95,15 @@ function App() {
           <ProtectedRoute>
             <PermissionRoute permission="viewAutomation" fallback="/dashboard">
               <AutomationRules />
+            </PermissionRoute>
+          </ProtectedRoute>
+        } />
+
+        {/* Schedules - requires viewAutomation permission */}
+        <Route path="/farms/:farmId/schedules" element={
+          <ProtectedRoute>
+            <PermissionRoute permission="viewAutomation" fallback="/dashboard">
+              <Schedules />
             </PermissionRoute>
           </ProtectedRoute>
         } />

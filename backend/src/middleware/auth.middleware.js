@@ -9,7 +9,16 @@ function authenticate(req, res, next) {
   try {
     const authHeader = req.headers.authorization;
 
+    // DEBUG: Log the request details
+    console.log('🔐 Auth Debug:', {
+      method: req.method,
+      path: req.path,
+      hasAuthHeader: !!authHeader,
+      authHeaderStart: authHeader ? authHeader.substring(0, 20) + '...' : 'none'
+    });
+
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.log('❌ Auth failed: No Bearer token');
       return res.status(401).json({
         status: 'error',
         message: 'Access token is required'
@@ -20,15 +29,18 @@ function authenticate(req, res, next) {
     const decoded = verifyToken(token);
 
     if (!decoded) {
+      console.log('❌ Auth failed: Token invalid or expired');
       return res.status(401).json({
         status: 'error',
         message: 'Invalid or expired access token'
       });
     }
 
+    console.log('✅ Auth success:', { userId: decoded.userId, role: decoded.role });
     req.user = decoded;
     next();
   } catch (error) {
+    console.log('❌ Auth error:', error.message);
     return res.status(401).json({
       status: 'error',
       message: 'Authentication failed'

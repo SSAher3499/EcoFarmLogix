@@ -13,6 +13,7 @@ const automationRoutes = require('./automation.routes');
 const userRoutes = require('./user.routes');
 const teamRoutes = require('./team.routes');
 const serialConfigRoutes = require('./serialConfig.routes');
+const scheduleRoutes = require('./schedule.routes');
 
 // Mount routes
 router.use('/auth', authRoutes);
@@ -26,6 +27,7 @@ router.use('/', historyRoutes);
 router.use('/', automationRoutes);
 router.use('/', teamRoutes);
 router.use('/', serialConfigRoutes);
+router.use('/', scheduleRoutes);
 
 // API info route
 router.get('/', (req, res) => {
@@ -81,6 +83,14 @@ router.get('/', (req, res) => {
         byCoords: 'GET /api/v1/weather?lat=XX&lon=YY',
         byCity: 'GET /api/v1/weather/city/:cityName',
         byFarm: 'GET /api/v1/farms/:farmId/weather'
+      },
+      schedules: {
+        listByFarm: 'GET /api/v1/farms/:farmId/schedules',
+        create: 'POST /api/v1/farms/:farmId/schedules',
+        get: 'GET /api/v1/schedules/:scheduleId',
+        update: 'PUT /api/v1/schedules/:scheduleId',
+        delete: 'DELETE /api/v1/schedules/:scheduleId',
+        toggle: 'POST /api/v1/schedules/:scheduleId/toggle'
       }
     }
   });

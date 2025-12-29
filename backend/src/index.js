@@ -10,6 +10,7 @@ const { connectDatabase, disconnectDatabase } = require('./config/database');
 const routes = require('./routes');
 const mqttService = require('./mqtt/mqtt.service');
 const websocketService = require('./services/websocket.service');
+const schedulerService = require('./services/schedule.service');
 
 // Initialize Express app
 const app = express();
@@ -116,6 +117,13 @@ async function startServer() {
     console.error('⚠️ MQTT connection failed, continuing without MQTT:', error.message);
   }
 
+  // Start scheduler service
+  try {
+    schedulerService.start();
+  } catch (error) {
+    console.error('⚠️ Scheduler failed to start:', error.message);
+  }
+
   // Start HTTP server (not app.listen!)
   server.listen(PORT, () => {
     console.log(`
@@ -132,6 +140,7 @@ async function startServer() {
   ║   → Database:    Connected ✅                             ║
   ║   → MQTT:        ${mqttService.isConnected ? 'Connected ✅' : 'Disconnected ⚠️'}                        ║
   ║   → WebSocket:   Running ✅                               ║
+  ║   → Scheduler:   ${schedulerService.isRunning ? 'Running ✅' : 'Stopped ⚠️'}                         ║
   ║                                                           ║
   ╚═══════════════════════════════════════════════════════════╝
     `);
@@ -141,6 +150,7 @@ async function startServer() {
 // Graceful shutdown
 process.on('SIGINT', async () => {
   console.log('\n🛑 Shutting down gracefully...');
+  schedulerService.stop();
   mqttService.disconnect();
   await disconnectDatabase();
   process.exit(0);
@@ -148,6 +158,7 @@ process.on('SIGINT', async () => {
 
 process.on('SIGTERM', async () => {
   console.log('\n🛑 Shutting down gracefully...');
+  schedulerService.stop();
   mqttService.disconnect();
   await disconnectDatabase();
   process.exit(0);

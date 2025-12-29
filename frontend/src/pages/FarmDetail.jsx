@@ -6,7 +6,7 @@ import { socketService } from "../services/socket.service";
 import { useAuthStore } from "../store/authStore";
 import { useTranslation } from "../hooks/useTranslation";
 import { getRoleDisplayName, getRoleBadgeColor } from "../utils/permissions";
-import { FiSettings, FiUsers } from "react-icons/fi";
+import { FiSettings, FiUsers, FiClock } from "react-icons/fi";
 import { FiZap } from "react-icons/fi";
 import {
   FiThermometer,
@@ -270,6 +270,17 @@ export default function FarmDetail() {
             >
               <FiZap className="w-4 h-4 md:w-5 md:h-5" />
               <span className="hidden sm:inline">{t('farm.automation')}</span>
+            </Link>
+          )}
+
+          {/* Schedules - only for users with permission */}
+          {canViewAutomation && (
+            <Link
+              to={`/farms/${farmId}/schedules`}
+              className="flex items-center gap-1 md:gap-2 px-3 md:px-4 py-2 md:py-2 min-h-[44px] bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm md:text-base whitespace-nowrap"
+            >
+              <FiClock className="w-4 h-4 md:w-5 md:h-5" />
+              <span className="hidden sm:inline">{t('farm.schedules')}</span>
             </Link>
           )}
 
