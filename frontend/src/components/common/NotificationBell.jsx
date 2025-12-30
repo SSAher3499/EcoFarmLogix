@@ -254,19 +254,17 @@ export default function NotificationBell() {
           </div>
 
           {/* Footer */}
-          {notifications.length > 0 && (
-            <div className="p-3 border-t border-gray-200 dark:border-gray-700">
-              <button
-                onClick={() => {
-                  navigate('/notifications');
-                  setIsOpen(false);
-                }}
-                className="w-full text-center text-sm text-green-600 hover:text-green-700 dark:text-green-400 hover:underline"
-              >
-                {t('notifications.viewAll', 'View all notifications')}
-              </button>
-            </div>
-          )}
+          <div className="p-3 border-t border-gray-200 dark:border-gray-700">
+            <button
+              onClick={() => {
+                navigate('/notifications');
+                setIsOpen(false);
+              }}
+              className="w-full text-center text-sm text-green-600 hover:text-green-700 dark:text-green-400 hover:underline"
+            >
+              {t('notifications.viewAll', 'View all notifications')}
+            </button>
+          </div>
         </div>
       )}
     </div>
