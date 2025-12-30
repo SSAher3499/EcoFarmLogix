@@ -420,4 +420,19 @@ export default {
     marathi: 'मराठी',
     select: 'Select Language',
   },
+
+  // Settings
+  settings: {
+    title: 'Settings',
+    changePassword: 'Change Password',
+    currentPassword: 'Current Password',
+    newPassword: 'New Password',
+    confirmPassword: 'Confirm New Password',
+    savePassword: 'Change Password',
+    passwordChanged: 'Password changed successfully',
+    passwordChangeFailed: 'Failed to change password',
+    passwordMismatch: 'New passwords do not match',
+    passwordTooShort: 'Password must be at least 6 characters',
+    passwordHint: 'Minimum 6 characters',
+  },
 };

@@ -14,6 +14,7 @@ import AutomationRules from './pages/AutomationRules';
 import DeviceManagement from './pages/DeviceManagement';
 import TeamManagement from './pages/TeamManagement';
 import Schedules from './pages/Schedules';
+import Settings from './pages/Settings';
 
 // Components
 import ProtectedRoute from './components/common/ProtectedRoute';
@@ -134,10 +135,7 @@ function App() {
 
         <Route path="/settings" element={
           <ProtectedRoute>
-            <div className="text-center py-12">
-              <h2 className="text-2xl font-bold text-gray-700">Settings</h2>
-              <p className="text-gray-500">Coming soon...</p>
-            </div>
+            <Settings />
           </ProtectedRoute>
         } />
 
