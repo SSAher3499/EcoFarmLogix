@@ -15,6 +15,7 @@ import DeviceManagement from './pages/DeviceManagement';
 import TeamManagement from './pages/TeamManagement';
 import Schedules from './pages/Schedules';
 import Settings from './pages/Settings';
+import Notifications from './pages/Notifications';
 
 // Components
 import ProtectedRoute from './components/common/ProtectedRoute';
@@ -136,6 +137,12 @@ function App() {
         <Route path="/settings" element={
           <ProtectedRoute>
             <Settings />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/notifications" element={
+          <ProtectedRoute>
+            <Notifications />
           </ProtectedRoute>
         } />
 

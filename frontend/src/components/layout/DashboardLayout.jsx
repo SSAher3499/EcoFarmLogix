@@ -4,6 +4,7 @@ import { useAuthStore } from '../../store/authStore';
 import { useTranslation } from '../../hooks/useTranslation';
 import LanguageSwitcher from '../common/LanguageSwitcher';
 import ThemeToggle from '../common/ThemeToggle';
+import NotificationBell from '../common/NotificationBell';
 import {
   FiHome,
   FiGrid,
@@ -11,7 +12,6 @@ import {
   FiLogOut,
   FiMenu,
   FiX,
-  FiBell,
   FiUser
 } from 'react-icons/fi';
 
@@ -161,15 +161,7 @@ export default function DashboardLayout({ children }) {
               <ThemeToggle />
 
               {/* Notifications */}
-              <button
-                className="relative text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 min-h-[44px] min-w-[44px] flex items-center justify-center"
-                aria-label="Notifications"
-              >
-                <FiBell size={20} />
-                <span className="absolute top-1 right-1 w-2 h-2 md:w-4 md:h-4 bg-red-500 text-white text-[10px] md:text-xs rounded-full flex items-center justify-center">
-                  <span className="hidden md:inline">3</span>
-                </span>
-              </button>
+              <NotificationBell />
 
               {/* User */}
               <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors min-h-[44px]">
