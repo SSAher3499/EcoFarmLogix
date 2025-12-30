@@ -8,8 +8,8 @@ class AutomationController {
   async createRule(req, res, next) {
     try {
       const { farmId } = req.params;
-      const rule = await automationService.createRule(farmId, req.user.userId, req.body);
-      
+      const rule = await automationService.createRule(farmId, req.user, req.body);
+
       res.status(201).json({
         status: 'success',
         message: 'Automation rule created successfully',
@@ -26,8 +26,8 @@ class AutomationController {
   async getFarmRules(req, res, next) {
     try {
       const { farmId } = req.params;
-      const rules = await automationService.getFarmRules(farmId, req.user.userId);
-      
+      const rules = await automationService.getFarmRules(farmId, req.user);
+
       res.status(200).json({
         status: 'success',
         data: { rules, count: rules.length }
@@ -43,8 +43,8 @@ class AutomationController {
   async getRule(req, res, next) {
     try {
       const { ruleId } = req.params;
-      const rule = await automationService.getRule(ruleId, req.user.userId);
-      
+      const rule = await automationService.getRule(ruleId, req.user);
+
       res.status(200).json({
         status: 'success',
         data: { rule }
@@ -60,8 +60,8 @@ class AutomationController {
   async updateRule(req, res, next) {
     try {
       const { ruleId } = req.params;
-      const rule = await automationService.updateRule(ruleId, req.user.userId, req.body);
-      
+      const rule = await automationService.updateRule(ruleId, req.user, req.body);
+
       res.status(200).json({
         status: 'success',
         message: 'Rule updated successfully',
@@ -78,8 +78,8 @@ class AutomationController {
   async deleteRule(req, res, next) {
     try {
       const { ruleId } = req.params;
-      const result = await automationService.deleteRule(ruleId, req.user.userId);
-      
+      const result = await automationService.deleteRule(ruleId, req.user);
+
       res.status(200).json({
         status: 'success',
         ...result
@@ -95,8 +95,8 @@ class AutomationController {
   async toggleRule(req, res, next) {
     try {
       const { ruleId } = req.params;
-      const rule = await automationService.toggleRule(ruleId, req.user.userId);
-      
+      const rule = await automationService.toggleRule(ruleId, req.user);
+
       res.status(200).json({
         status: 'success',
         message: `Rule ${rule.isEnabled ? 'enabled' : 'disabled'}`,
@@ -113,8 +113,8 @@ class AutomationController {
   async getFarmComponents(req, res, next) {
     try {
       const { farmId } = req.params;
-      const components = await automationService.getFarmComponents(farmId, req.user.userId);
-      
+      const components = await automationService.getFarmComponents(farmId, req.user);
+
       res.status(200).json({
         status: 'success',
         data: components

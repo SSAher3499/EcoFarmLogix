@@ -5,14 +5,29 @@ class AutomationService {
   /**
    * Create a new automation rule
    */
-  async createRule(farmId, userId, ruleData) {
-    // Verify farm belongs to user
-    const farm = await prisma.farm.findFirst({
-      where: { id: farmId, userId }
-    });
+  async createRule(farmId, user, ruleData) {
+    // Verify farm access
+    let farm;
+    if (user.role === 'SUPER_ADMIN') {
+      // SUPER_ADMIN can access any farm
+      farm = await prisma.farm.findUnique({
+        where: { id: farmId }
+      });
+    } else {
+      // Regular users - check ownership or FarmUser access
+      farm = await prisma.farm.findFirst({
+        where: {
+          id: farmId,
+          OR: [
+            { userId: user.userId },
+            { farmUsers: { some: { userId: user.userId, isActive: true } } }
+          ]
+        }
+      });
+    }
 
     if (!farm) {
-      throw { status: 404, message: 'Farm not found' };
+      throw { status: 404, message: 'Farm not found or access denied' };
     }
 
     // Verify actuator belongs to this farm
@@ -65,14 +80,29 @@ class AutomationService {
   /**
    * Get all rules for a farm
    */
-  async getFarmRules(farmId, userId) {
-    // Verify farm belongs to user
-    const farm = await prisma.farm.findFirst({
-      where: { id: farmId, userId }
-    });
+  async getFarmRules(farmId, user) {
+    // Verify farm access
+    let farm;
+    if (user.role === 'SUPER_ADMIN') {
+      // SUPER_ADMIN can access any farm
+      farm = await prisma.farm.findUnique({
+        where: { id: farmId }
+      });
+    } else {
+      // Regular users - check ownership or FarmUser access
+      farm = await prisma.farm.findFirst({
+        where: {
+          id: farmId,
+          OR: [
+            { userId: user.userId },
+            { farmUsers: { some: { userId: user.userId, isActive: true } } }
+          ]
+        }
+      });
+    }
 
     if (!farm) {
-      throw { status: 404, message: 'Farm not found' };
+      throw { status: 404, message: 'Farm not found or access denied' };
     }
 
     const rules = await prisma.automationRule.findMany({
@@ -121,7 +151,7 @@ class AutomationService {
   /**
    * Get single rule
    */
-  async getRule(ruleId, userId) {
+  async getRule(ruleId, user) {
     const rule = await prisma.automationRule.findUnique({
       where: { id: ruleId },
       include: {
@@ -143,8 +173,22 @@ class AutomationService {
       throw { status: 404, message: 'Rule not found' };
     }
 
-    if (rule.farm.userId !== userId) {
-      throw { status: 403, message: 'Access denied' };
+    // SUPER_ADMIN can access any rule
+    if (user.role !== 'SUPER_ADMIN') {
+      // Regular users - check ownership or FarmUser access
+      const hasAccess = await prisma.farm.findFirst({
+        where: {
+          id: rule.farmId,
+          OR: [
+            { userId: user.userId },
+            { farmUsers: { some: { userId: user.userId, isActive: true } } }
+          ]
+        }
+      });
+
+      if (!hasAccess) {
+        throw { status: 403, message: 'Access denied' };
+      }
     }
 
     return rule;
@@ -153,9 +197,9 @@ class AutomationService {
   /**
    * Update rule
    */
-  async updateRule(ruleId, userId, updateData) {
+  async updateRule(ruleId, user, updateData) {
     // Verify rule exists and user has access
-    await this.getRule(ruleId, userId);
+    await this.getRule(ruleId, user);
 
     const rule = await prisma.automationRule.update({
       where: { id: ruleId },
@@ -183,9 +227,9 @@ class AutomationService {
   /**
    * Delete rule
    */
-  async deleteRule(ruleId, userId) {
+  async deleteRule(ruleId, user) {
     // Verify rule exists and user has access
-    await this.getRule(ruleId, userId);
+    await this.getRule(ruleId, user);
 
     await prisma.automationRule.delete({
       where: { id: ruleId }
@@ -197,8 +241,8 @@ class AutomationService {
   /**
    * Toggle rule enabled/disabled
    */
-  async toggleRule(ruleId, userId) {
-    const rule = await this.getRule(ruleId, userId);
+  async toggleRule(ruleId, user) {
+    const rule = await this.getRule(ruleId, user);
 
     const updated = await prisma.automationRule.update({
       where: { id: ruleId },
@@ -329,14 +373,29 @@ class AutomationService {
   /**
    * Get available sensors and actuators for a farm (for rule creation)
    */
-  async getFarmComponents(farmId, userId) {
-    // Verify farm belongs to user
-    const farm = await prisma.farm.findFirst({
-      where: { id: farmId, userId }
-    });
+  async getFarmComponents(farmId, user) {
+    // Verify farm access
+    let farm;
+    if (user.role === 'SUPER_ADMIN') {
+      // SUPER_ADMIN can access any farm
+      farm = await prisma.farm.findUnique({
+        where: { id: farmId }
+      });
+    } else {
+      // Regular users - check ownership or FarmUser access
+      farm = await prisma.farm.findFirst({
+        where: {
+          id: farmId,
+          OR: [
+            { userId: user.userId },
+            { farmUsers: { some: { userId: user.userId, isActive: true } } }
+          ]
+        }
+      });
+    }
 
     if (!farm) {
-      throw { status: 404, message: 'Farm not found' };
+      throw { status: 404, message: 'Farm not found or access denied' };
     }
 
     const devices = await prisma.device.findMany({
