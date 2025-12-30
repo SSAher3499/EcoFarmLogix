@@ -7,6 +7,7 @@ import { useAuthStore } from './store/authStore';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
+import MyFarms from './pages/MyFarms';
 import FarmDetail from './pages/FarmDetail';
 import FarmHistory from './pages/FarmHistory';
 import AddFarm from './pages/AddFarm';
@@ -70,10 +71,10 @@ function App() {
             <Dashboard />
           </ProtectedRoute>
         } />
-        
+
         <Route path="/farms" element={
           <ProtectedRoute>
-            <Dashboard />
+            <MyFarms />
           </ProtectedRoute>
         } />
 

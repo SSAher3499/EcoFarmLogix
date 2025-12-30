@@ -1,112 +1,274 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { farmService } from '../services/farm.service';
+import { FiHome, FiCpu, FiActivity, FiAlertTriangle, FiPlus, FiArrowRight, FiThermometer, FiZap } from 'react-icons/fi';
 import { useTranslation } from '../hooks/useTranslation';
-import { FiMapPin, FiThermometer, FiDroplet, FiActivity } from 'react-icons/fi';
+import { useAuthStore } from '../store/authStore';
+import api from '../services/api';
 import toast from 'react-hot-toast';
 
 export default function Dashboard() {
-  const [farms, setFarms] = useState([]);
-  const [loading, setLoading] = useState(true);
   const { t } = useTranslation();
+  const { user } = useAuthStore();
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    totalFarms: 0,
+    onlineDevices: 0,
+    offlineDevices: 0,
+    totalSensors: 0,
+    totalActuators: 0,
+    activeAlerts: 0
+  });
+  const [farms, setFarms] = useState([]);
+  const [recentNotifications, setRecentNotifications] = useState([]);
 
   useEffect(() => {
-    loadFarms();
+    fetchDashboardData();
   }, []);
 
-  const loadFarms = async () => {
+  const fetchDashboardData = async () => {
     try {
-      const data = await farmService.getFarms();
-      setFarms(data);
+      setLoading(true);
+
+      // Fetch farms
+      const farmsResponse = await api.get('/farms');
+      const farmsData = farmsResponse.data.data.farms || farmsResponse.data.data || [];
+      setFarms(farmsData);
+
+      // Calculate stats from farms
+      let onlineDevices = 0;
+      let offlineDevices = 0;
+      let totalSensors = 0;
+      let totalActuators = 0;
+
+      farmsData.forEach(farm => {
+        if (farm.devices) {
+          farm.devices.forEach(device => {
+            if (device.isOnline) onlineDevices++;
+            else offlineDevices++;
+          });
+        }
+        if (farm._count) {
+          totalSensors += farm._count.sensors || 0;
+          totalActuators += farm._count.actuators || 0;
+        }
+      });
+
+      setStats({
+        totalFarms: farmsData.length,
+        onlineDevices,
+        offlineDevices,
+        totalSensors,
+        totalActuators,
+        activeAlerts: 0 // TODO: Fetch from alerts API
+      });
+
+      // Fetch recent notifications
+      try {
+        const notifResponse = await api.get('/notifications?limit=5');
+        setRecentNotifications(notifResponse.data.data.notifications || []);
+      } catch (e) {
+        console.log('No notifications');
+      }
+
     } catch (error) {
-      toast.error(t('messages.loadFailed'));
+      console.error('Failed to fetch dashboard data:', error);
+      toast.error('Failed to load dashboard');
     } finally {
       setLoading(false);
     }
   };
 
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return t('dashboard.goodMorning', 'Good Morning');
+    if (hour < 17) return t('dashboard.goodAfternoon', 'Good Afternoon');
+    return t('dashboard.goodEvening', 'Good Evening');
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 dark:border-primary-400"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-green-500 border-t-transparent"></div>
       </div>
     );
   }
 
   return (
-    <div>
-      {/* Header - Responsive */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-4 md:mb-6">
-        <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800 dark:text-white">{t('dashboard.title')}</h1>
-        <Link
-          to="/farms/new"
-          className="bg-primary-600 dark:bg-primary-500 text-white px-4 py-3 md:py-2 rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors text-center min-h-[44px] flex items-center justify-center font-medium"
-        >
-          {t('dashboard.addFarm')}
-        </Link>
+    <div className="space-y-6">
+      {/* Welcome Section */}
+      <div className="bg-gradient-to-r from-green-600 to-green-700 rounded-xl p-6 text-white">
+        <h1 className="text-2xl font-bold">
+          {getGreeting()}, {user?.fullName?.split(' ')[0] || 'User'}! 👋
+        </h1>
+        <p className="text-green-100 mt-1">
+          {t('dashboard.welcomeMessage', 'Here\'s an overview of your farm operations')}
+        </p>
+        <p className="text-green-200 text-sm mt-2">
+          {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+        </p>
       </div>
 
-      {farms.length === 0 ? (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-8 md:p-12 text-center transition-colors">
-          <div className="text-5xl md:text-6xl mb-4">🌱</div>
-          <h2 className="text-lg md:text-xl font-semibold text-gray-700 dark:text-gray-200 mb-2">{t('dashboard.noFarms')}</h2>
-          <p className="text-sm md:text-base text-gray-500 dark:text-gray-400 mb-6">{t('dashboard.noFarmsDesc')}</p>
-          <Link
-            to="/farms/new"
-            className="bg-primary-600 dark:bg-primary-500 text-white px-6 py-3 rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors inline-block min-h-[44px] font-medium"
-          >
-            {t('dashboard.addFirstFarm')}
-          </Link>
+      {/* Quick Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow">
+          <div className="flex items-center justify-between">
+            <FiHome className="w-8 h-8 text-green-500" />
+            <span className="text-2xl font-bold text-gray-800 dark:text-white">{stats.totalFarms}</span>
+          </div>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">{t('dashboard.totalFarms', 'Total Farms')}</p>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-          {farms.map((farm) => (
-            <Link
-              key={farm.id}
-              to={`/farms/${farm.id}`}
-              className="bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-lg dark:hover:shadow-primary-900/20 transition-all p-4 md:p-6"
-            >
-              <div className="flex justify-between items-start mb-4">
-                <div className="flex-1 min-w-0 pr-2">
-                  <h3 className="text-base md:text-lg font-semibold text-gray-800 dark:text-white truncate">{farm.name}</h3>
-                  <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-1">
-                    <FiMapPin size={14} className="flex-shrink-0" />
-                    <span className="truncate">{farm.locationAddress || t('dashboard.noLocation')}</span>
-                  </p>
-                </div>
-                <span className={`
-                  px-2 py-1 text-xs rounded-full whitespace-nowrap flex-shrink-0
-                  ${farm.devices?.some(d => d.isOnline)
-                    ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-                    : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'}
-                `}>
-                  {farm.devices?.some(d => d.isOnline)
-                    ? `● ${t('common.online')}`
-                    : `○ ${t('common.offline')}`}
-                </span>
-              </div>
 
-              <div className="grid grid-cols-3 gap-2 md:gap-4 text-center">
-                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-2 md:p-3 transition-colors">
-                  <FiThermometer className="mx-auto text-orange-500 dark:text-orange-400 mb-1" size={18} />
-                  <p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400">{t('dashboard.devices')}</p>
-                  <p className="text-sm md:text-base font-semibold dark:text-white">{farm._count?.devices || 0}</p>
-                </div>
-                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-2 md:p-3 transition-colors">
-                  <FiDroplet className="mx-auto text-blue-500 dark:text-blue-400 mb-1" size={18} />
-                  <p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400">{t('farm.type')}</p>
-                  <p className="text-xs md:text-sm font-semibold dark:text-white truncate">
-                    {t(`farm.farmTypes.${farm.farmType}`) || farm.farmType}
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow">
+          <div className="flex items-center justify-between">
+            <FiCpu className="w-8 h-8 text-blue-500" />
+            <span className="text-2xl font-bold text-green-600">{stats.onlineDevices}</span>
+          </div>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">{t('dashboard.onlineDevices', 'Online Devices')}</p>
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow">
+          <div className="flex items-center justify-between">
+            <FiCpu className="w-8 h-8 text-red-500" />
+            <span className="text-2xl font-bold text-red-600">{stats.offlineDevices}</span>
+          </div>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">{t('dashboard.offlineDevices', 'Offline Devices')}</p>
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow">
+          <div className="flex items-center justify-between">
+            <FiThermometer className="w-8 h-8 text-orange-500" />
+            <span className="text-2xl font-bold text-gray-800 dark:text-white">{stats.totalSensors}</span>
+          </div>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">{t('dashboard.totalSensors', 'Total Sensors')}</p>
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow">
+          <div className="flex items-center justify-between">
+            <FiZap className="w-8 h-8 text-yellow-500" />
+            <span className="text-2xl font-bold text-gray-800 dark:text-white">{stats.totalActuators}</span>
+          </div>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">{t('dashboard.totalActuators', 'Total Actuators')}</p>
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow">
+          <div className="flex items-center justify-between">
+            <FiAlertTriangle className="w-8 h-8 text-red-500" />
+            <span className="text-2xl font-bold text-gray-800 dark:text-white">{stats.activeAlerts}</span>
+          </div>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">{t('dashboard.activeAlerts', 'Active Alerts')}</p>
+        </div>
+      </div>
+
+      {/* Two Column Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Farm Status */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
+              {t('dashboard.farmStatus', 'Farm Status')}
+            </h2>
+            <Link to="/farms" className="text-sm text-green-600 hover:text-green-700 flex items-center gap-1">
+              {t('dashboard.viewAll', 'View All')} <FiArrowRight />
+            </Link>
+          </div>
+
+          {farms.length === 0 ? (
+            <div className="text-center py-8">
+              <FiHome className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+              <p className="text-gray-500 dark:text-gray-400">{t('dashboard.noFarms', 'No farms yet')}</p>
+              {user?.role === 'SUPER_ADMIN' && (
+                <Link to="/farms/new" className="inline-flex items-center gap-2 mt-3 text-green-600 hover:text-green-700">
+                  <FiPlus /> {t('dashboard.addFarm', 'Add Farm')}
+                </Link>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {farms.slice(0, 5).map(farm => (
+                <Link
+                  key={farm.id}
+                  to={`/farms/${farm.id}`}
+                  className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                >
+                  <div>
+                    <p className="font-medium text-gray-800 dark:text-white">{farm.name}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{farm.locationAddress || farm.farmType}</p>
+                  </div>
+                  <div className={`flex items-center gap-2 px-2 py-1 rounded-full text-xs ${
+                    farm.devices?.some(d => d.isOnline)
+                      ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                      : 'bg-gray-100 text-gray-600 dark:bg-gray-600 dark:text-gray-300'
+                  }`}>
+                    <span className={`w-2 h-2 rounded-full ${
+                      farm.devices?.some(d => d.isOnline) ? 'bg-green-500' : 'bg-gray-400'
+                    }`}></span>
+                    {farm.devices?.some(d => d.isOnline) ? t('common.online', 'Online') : t('common.offline', 'Offline')}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Recent Activity */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
+              {t('dashboard.recentActivity', 'Recent Activity')}
+            </h2>
+            <Link to="/notifications" className="text-sm text-green-600 hover:text-green-700 flex items-center gap-1">
+              {t('dashboard.viewAll', 'View All')} <FiArrowRight />
+            </Link>
+          </div>
+
+          {recentNotifications.length === 0 ? (
+            <div className="text-center py-8">
+              <FiActivity className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+              <p className="text-gray-500 dark:text-gray-400">{t('dashboard.noActivity', 'No recent activity')}</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {recentNotifications.map(notification => (
+                <div
+                  key={notification.id}
+                  className={`p-3 rounded-lg ${
+                    !notification.isRead
+                      ? 'bg-green-50 dark:bg-green-900/20'
+                      : 'bg-gray-50 dark:bg-gray-700/50'
+                  }`}
+                >
+                  <p className="font-medium text-gray-800 dark:text-white text-sm">{notification.title}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{notification.message}</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                    {new Date(notification.createdAt).toLocaleString()}
                   </p>
                 </div>
-                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-2 md:p-3 transition-colors">
-                  <FiActivity className="mx-auto text-red-500 dark:text-red-400 mb-1" size={18} />
-                  <p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400">{t('dashboard.alerts')}</p>
-                  <p className="text-sm md:text-base font-semibold dark:text-white">{farm._count?.alerts || 0}</p>
-                </div>
-              </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Quick Actions (for Super Admin) */}
+      {user?.role === 'SUPER_ADMIN' && (
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6">
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
+            {t('dashboard.quickActions', 'Quick Actions')}
+          </h2>
+          <div className="flex flex-wrap gap-3">
+            <Link
+              to="/farms/new"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+            >
+              <FiPlus /> {t('dashboard.addFarm', 'Add Farm')}
             </Link>
-          ))}
+            <Link
+              to="/farms"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              <FiHome /> {t('dashboard.manageFarms', 'Manage Farms')}
+            </Link>
+          </div>
         </div>
       )}
     </div>
