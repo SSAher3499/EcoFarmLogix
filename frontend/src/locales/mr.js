@@ -181,6 +181,10 @@ export default {
     serialConfig: 'सीरियल पोर्ट कॉन्फिगरेशन',
     noDevices: 'कोणतेही उपकरण कॉन्फिगर केलेले नाही',
     noDevicesDesc: 'निरीक्षण सुरू करण्यासाठी गेटवे उपकरण जोडा',
+    online: 'उपकरण ऑनलाइन',
+    offline: 'उपकरण ऑफलाइन',
+    offlineWarning: 'उपकरण ऑफलाइन आहे',
+    offlineDescription: 'सेन्सर मूल्ये अद्यतनित होत नसतील. आपले उपकरण कनेक्शन तपासा.',
     types: {
       GATEWAY: 'गेटवे',
       SENSOR_NODE: 'सेन्सर नोड',

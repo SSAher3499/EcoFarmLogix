@@ -181,6 +181,10 @@ export default {
     serialConfig: 'Serial Port Configuration',
     noDevices: 'No devices configured',
     noDevicesDesc: 'Add a gateway device to start monitoring',
+    online: 'Device Online',
+    offline: 'Device Offline',
+    offlineWarning: 'Device is offline',
+    offlineDescription: 'Sensor values may not be updating. Check your device connection.',
     types: {
       GATEWAY: 'Gateway',
       SENSOR_NODE: 'Sensor Node',

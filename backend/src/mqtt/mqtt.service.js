@@ -9,6 +9,7 @@ class MQTTService {
   constructor() {
     this.client = null;
     this.isConnected = false;
+    this.offlineCheckInterval = null;
   }
 
   /**
@@ -25,6 +26,7 @@ class MQTTService {
         console.log("✅ MQTT connected to broker");
 
         this.subscribeToTopics();
+        this.startOfflineCheck();
         resolve(true);
       });
 
@@ -426,9 +428,84 @@ class MQTTService {
   }
 
   /**
+   * Start periodic check for offline devices
+   */
+  startOfflineCheck() {
+    // Clear any existing interval
+    if (this.offlineCheckInterval) {
+      clearInterval(this.offlineCheckInterval);
+    }
+
+    // Run check immediately
+    this.checkOfflineDevices();
+
+    // Then check every minute
+    this.offlineCheckInterval = setInterval(() => {
+      this.checkOfflineDevices();
+    }, 60 * 1000); // 60 seconds
+
+    console.log("⏰ Offline device check started (runs every 60 seconds)");
+  }
+
+  /**
+   * Check and mark devices as offline if no data received for 2+ minutes
+   */
+  async checkOfflineDevices() {
+    try {
+      const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
+
+      // Find devices that are marked online but haven't been seen in 2+ minutes
+      const devicesToMarkOffline = await prisma.device.findMany({
+        where: {
+          isOnline: true,
+          lastSeenAt: {
+            lt: twoMinutesAgo,
+          },
+        },
+        include: {
+          farm: true,
+        },
+      });
+
+      if (devicesToMarkOffline.length > 0) {
+        console.log(
+          `⚠️ Marking ${devicesToMarkOffline.length} device(s) as offline (no data for 2+ minutes)`
+        );
+
+        // Update each device and broadcast status
+        for (const device of devicesToMarkOffline) {
+          await prisma.device.update({
+            where: { id: device.id },
+            data: { isOnline: false },
+          });
+
+          // Broadcast offline status via WebSocket
+          websocketService.broadcastDeviceStatus(
+            device.farmId,
+            device.id,
+            false
+          );
+
+          console.log(
+            `📴 Device offline: ${device.deviceName} (${device.macAddress})`
+          );
+        }
+      }
+    } catch (error) {
+      console.error("❌ Error checking offline devices:", error.message);
+    }
+  }
+
+  /**
    * Disconnect from MQTT broker
    */
   disconnect() {
+    // Clear offline check interval
+    if (this.offlineCheckInterval) {
+      clearInterval(this.offlineCheckInterval);
+      this.offlineCheckInterval = null;
+    }
+
     if (this.client) {
       this.client.end();
       console.log("📴 MQTT disconnected");
