@@ -38,11 +38,24 @@ class HistoryController {
         });
       }
 
-      if (sensor.device.farm.userId !== req.user.userId) {
-        return res.status(403).json({
-          status: 'error',
-          message: 'Access denied'
+      // SUPER_ADMIN can access any farm
+      if (req.user.role !== 'SUPER_ADMIN' && sensor.device.farm.userId !== req.user.userId) {
+        // Also check FarmUser access for non-owners
+        const farmUser = await prisma.farmUser.findUnique({
+          where: {
+            farmId_userId: {
+              farmId: sensor.device.farm.id,
+              userId: req.user.userId
+            }
+          }
         });
+
+        if (!farmUser || !farmUser.isActive) {
+          return res.status(403).json({
+            status: 'error',
+            message: 'Access denied'
+          });
+        }
       }
 
       // Get historical data from InfluxDB
@@ -88,23 +101,40 @@ class HistoryController {
       }
 
       // Verify farm exists and user has access
-      const farm = await prisma.farm.findFirst({
-        where: { 
-          id: farmId, 
-          userId: req.user.userId,
-          isActive: true 
-        },
-        include: {
-          devices: {
-            include: { sensors: true }
+      let farm;
+      if (req.user.role === 'SUPER_ADMIN') {
+        // SUPER_ADMIN can access any farm
+        farm = await prisma.farm.findUnique({
+          where: { id: farmId },
+          include: {
+            devices: {
+              include: { sensors: true }
+            }
           }
-        }
-      });
+        });
+      } else {
+        // Regular users - check ownership or FarmUser access
+        farm = await prisma.farm.findFirst({
+          where: {
+            id: farmId,
+            isActive: true,
+            OR: [
+              { userId: req.user.userId },
+              { farmUsers: { some: { userId: req.user.userId, isActive: true } } }
+            ]
+          },
+          include: {
+            devices: {
+              include: { sensors: true }
+            }
+          }
+        });
+      }
 
       if (!farm) {
         return res.status(404).json({
           status: 'error',
-          message: 'Farm not found'
+          message: 'Farm not found or access denied'
         });
       }
 
@@ -170,23 +200,40 @@ class HistoryController {
       const { range = '24h' } = req.query;
 
       // Verify farm access
-      const farm = await prisma.farm.findFirst({
-        where: { 
-          id: farmId, 
-          userId: req.user.userId,
-          isActive: true 
-        },
-        include: {
-          devices: {
-            include: { sensors: true }
+      let farm;
+      if (req.user.role === 'SUPER_ADMIN') {
+        // SUPER_ADMIN can access any farm
+        farm = await prisma.farm.findUnique({
+          where: { id: farmId },
+          include: {
+            devices: {
+              include: { sensors: true }
+            }
           }
-        }
-      });
+        });
+      } else {
+        // Regular users - check ownership or FarmUser access
+        farm = await prisma.farm.findFirst({
+          where: {
+            id: farmId,
+            isActive: true,
+            OR: [
+              { userId: req.user.userId },
+              { farmUsers: { some: { userId: req.user.userId, isActive: true } } }
+            ]
+          },
+          include: {
+            devices: {
+              include: { sensors: true }
+            }
+          }
+        });
+      }
 
       if (!farm) {
         return res.status(404).json({
           status: 'error',
-          message: 'Farm not found'
+          message: 'Farm not found or access denied'
         });
       }
 
