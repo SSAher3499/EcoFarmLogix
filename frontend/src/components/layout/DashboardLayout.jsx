@@ -12,7 +12,8 @@ import {
   FiLogOut,
   FiMenu,
   FiX,
-  FiUser
+  FiUser,
+  FiServer
 } from 'react-icons/fi';
 
 export default function DashboardLayout({ children }) {
@@ -32,6 +33,11 @@ export default function DashboardLayout({ children }) {
     { path: '/farms', icon: FiGrid, label: t('nav.myFarms') },
     { path: '/settings', icon: FiSettings, label: t('nav.settings') },
   ];
+
+  // Add Admin Panel for SUPER_ADMIN users
+  if (user?.role === 'SUPER_ADMIN') {
+    navItems.push({ path: '/admin', icon: FiServer, label: t('nav.adminPanel', 'Admin Panel') });
+  }
 
   const isActive = (path) => location.pathname === path;
 

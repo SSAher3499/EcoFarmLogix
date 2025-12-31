@@ -17,6 +17,7 @@ import TeamManagement from './pages/TeamManagement';
 import Schedules from './pages/Schedules';
 import Settings from './pages/Settings';
 import Notifications from './pages/Notifications';
+import AdminPanel from './pages/AdminPanel';
 
 // Components
 import ProtectedRoute from './components/common/ProtectedRoute';
@@ -144,6 +145,15 @@ function App() {
         <Route path="/notifications" element={
           <ProtectedRoute>
             <Notifications />
+          </ProtectedRoute>
+        } />
+
+        {/* Admin Panel - Super Admin only */}
+        <Route path="/admin" element={
+          <ProtectedRoute>
+            <PermissionRoute permission="createFarm">
+              <AdminPanel />
+            </PermissionRoute>
           </ProtectedRoute>
         } />
 

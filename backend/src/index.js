@@ -11,6 +11,7 @@ const routes = require('./routes');
 const mqttService = require('./mqtt/mqtt.service');
 const websocketService = require('./services/websocket.service');
 const schedulerService = require('./services/schedule.service');
+const errorLogger = require('./utils/errorLogger');
 
 // Initialize Express app
 const app = express();
@@ -83,10 +84,19 @@ app.use((req, res) => {
 
 app.use((err, req, res, next) => {
   console.error('Error:', err);
-  
+
+  // Log error for admin panel
+  errorLogger.log(err, {
+    path: req.path,
+    method: req.method,
+    userId: req.user?.userId,
+    body: req.body,
+    query: req.query
+  });
+
   const status = err.status || 500;
   const message = err.message || 'Internal server error';
-  
+
   res.status(status).json({
     status: 'error',
     message,

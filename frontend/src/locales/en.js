@@ -46,6 +46,7 @@ export default {
     myFarms: 'My Farms',
     settings: 'Settings',
     notifications: 'Notifications',
+    adminPanel: 'Admin Panel',
   },
 
   // Auth
@@ -477,5 +478,11 @@ export default {
     emptyDescription: "You're all caught up!",
     viewAll: 'View all notifications',
     justNow: 'Just now',
+  },
+
+  // Admin Panel
+  admin: {
+    title: 'Admin Panel',
+    subtitle: 'System monitoring and debugging tools',
   },
 };

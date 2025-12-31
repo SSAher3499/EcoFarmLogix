@@ -46,6 +46,7 @@ export default {
     myFarms: 'माझी शेती',
     settings: 'सेटिंग्ज',
     notifications: 'सूचना',
+    adminPanel: 'अॅडमिन पॅनेल',
   },
 
   // Auth
@@ -477,5 +478,11 @@ export default {
     emptyDescription: 'तुम्ही सर्व पाहिले आहे!',
     viewAll: 'सर्व सूचना पहा',
     justNow: 'आत्ताच',
+  },
+
+  // Admin Panel (अॅडमिन पॅनेल)
+  admin: {
+    title: 'अॅडमिन पॅनेल',
+    subtitle: 'सिस्टम निरीक्षण आणि डीबगिंग साधने',
   },
 };

@@ -15,6 +15,7 @@ const teamRoutes = require('./team.routes');
 const serialConfigRoutes = require('./serialConfig.routes');
 const scheduleRoutes = require('./schedule.routes');
 const notificationRoutes = require('./notification.routes');
+const adminRoutes = require('./admin.routes');
 
 // Mount routes
 router.use('/auth', authRoutes);
@@ -25,6 +26,7 @@ router.use('/devices', deviceRoutes);
 router.use('/actuators', actuatorRoutes);
 router.use('/sensors', sensorRoutes);
 router.use('/notifications', notificationRoutes);
+router.use('/admin', adminRoutes);
 router.use('/', historyRoutes);
 router.use('/', automationRoutes);
 router.use('/', teamRoutes);
