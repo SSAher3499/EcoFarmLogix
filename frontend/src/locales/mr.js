@@ -485,4 +485,11 @@ export default {
     title: 'अॅडमिन पॅनेल',
     subtitle: 'सिस्टम निरीक्षण आणि डीबगिंग साधने',
   },
+
+  // PWA (प्रोग्रेसिव्ह वेब अॅप)
+  pwa: {
+    installTitle: 'EcoFarmLogix इंस्टॉल करा',
+    installDescription: 'जलद प्रवेशासाठी होम स्क्रीनवर जोडा',
+    installButton: 'अॅप इंस्टॉल करा',
+  },
 };

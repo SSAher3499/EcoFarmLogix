@@ -485,4 +485,11 @@ export default {
     title: 'Admin Panel',
     subtitle: 'System monitoring and debugging tools',
   },
+
+  // PWA
+  pwa: {
+    installTitle: 'Install EcoFarmLogix',
+    installDescription: 'Add to home screen for quick access',
+    installButton: 'Install App',
+  },
 };

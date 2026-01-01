@@ -21,6 +21,7 @@ import AdminPanel from './pages/AdminPanel';
 
 // Components
 import ProtectedRoute from './components/common/ProtectedRoute';
+import PWAInstallPrompt from './components/common/PWAInstallPrompt';
 
 // Permission-based route wrapper
 function PermissionRoute({ children, permission, fallback = "/dashboard" }) {
@@ -170,6 +171,8 @@ function App() {
           </div>
         } />
       </Routes>
+
+      <PWAInstallPrompt />
     </BrowserRouter>
   );
 }
