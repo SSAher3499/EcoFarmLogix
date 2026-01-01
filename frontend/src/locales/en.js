@@ -451,6 +451,15 @@ export default {
     passwordMismatch: 'New passwords do not match',
     passwordTooShort: 'Password must be at least 6 characters',
     passwordHint: 'Minimum 6 characters',
+    installApp: 'Install App',
+    appInstalled: 'App is installed',
+    appInstalledDesc: 'You can access EcoFarmLogix from your home screen',
+    installAppDesc: 'Install EcoFarmLogix on your device for quick access and offline support.',
+    installButton: 'Install App',
+    installManual: 'To install EcoFarmLogix:',
+    installAndroid: 'Tap menu (⋮) → "Add to Home screen"',
+    installIOS: 'Tap Share → "Add to Home Screen"',
+    installDesktop: 'Click install icon in address bar',
   },
 
   // Notifications

@@ -1,11 +1,13 @@
 import { useState } from 'react';
-import { FiLock, FiEye, FiEyeOff, FiSave } from 'react-icons/fi';
+import { FiLock, FiEye, FiEyeOff, FiSave, FiDownload, FiCheckCircle, FiSmartphone } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import { useTranslation } from '../hooks/useTranslation';
+import { usePWAInstall } from '../hooks/usePWAInstall';
 import api from '../services/api';
 
 export default function Settings() {
   const { t } = useTranslation();
+  const { isInstallable, isInstalled, installApp } = usePWAInstall();
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -147,6 +149,52 @@ export default function Settings() {
             )}
           </button>
         </form>
+      </div>
+
+      {/* Install App Section */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-4 md:p-6 mt-6 transition-colors">
+        <h2 className="text-base md:text-lg font-semibold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
+          <FiSmartphone className="w-5 h-5" />
+          {t('settings.installApp', 'Install App')}
+        </h2>
+
+        {isInstalled ? (
+          <div className="flex items-center gap-3 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+            <FiCheckCircle className="w-6 h-6 text-green-600 dark:text-green-400 flex-shrink-0" />
+            <div>
+              <p className="font-medium text-green-800 dark:text-green-200">
+                {t('settings.appInstalled', 'App is installed')}
+              </p>
+              <p className="text-sm text-green-600 dark:text-green-400">
+                {t('settings.appInstalledDesc', 'You can access EcoFarmLogix from your home screen')}
+              </p>
+            </div>
+          </div>
+        ) : isInstallable ? (
+          <div>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
+              {t('settings.installAppDesc', 'Install EcoFarmLogix on your device for quick access and offline support.')}
+            </p>
+            <button
+              onClick={installApp}
+              className="flex items-center gap-2 px-4 py-2 md:py-3 min-h-[44px] bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+            >
+              <FiDownload className="w-5 h-5" />
+              {t('settings.installButton', 'Install App')}
+            </button>
+          </div>
+        ) : (
+          <div className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+            <p className="text-gray-600 dark:text-gray-400 mb-2">
+              {t('settings.installManual', 'To install EcoFarmLogix:')}
+            </p>
+            <ul className="text-sm text-gray-500 dark:text-gray-400 space-y-1 list-disc list-inside">
+              <li><strong>Android Chrome:</strong> {t('settings.installAndroid', 'Tap menu (⋮) → "Add to Home screen"')}</li>
+              <li><strong>iPhone Safari:</strong> {t('settings.installIOS', 'Tap Share → "Add to Home Screen"')}</li>
+              <li><strong>Desktop Chrome:</strong> {t('settings.installDesktop', 'Click install icon in address bar')}</li>
+            </ul>
+          </div>
+        )}
       </div>
     </div>
   );

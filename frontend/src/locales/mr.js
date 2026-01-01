@@ -451,6 +451,15 @@ export default {
     passwordMismatch: 'नवीन पासवर्ड जुळत नाहीत',
     passwordTooShort: 'पासवर्ड किमान 6 अक्षरांचा असावा',
     passwordHint: 'किमान 6 अक्षरे',
+    installApp: 'अॅप इंस्टॉल करा',
+    appInstalled: 'अॅप इंस्टॉल झाले आहे',
+    appInstalledDesc: 'तुम्ही होम स्क्रीनवरून EcoFarmLogix ऍक्सेस करू शकता',
+    installAppDesc: 'जलद प्रवेश आणि ऑफलाइन सपोर्टसाठी तुमच्या डिव्हाइसवर EcoFarmLogix इंस्टॉल करा.',
+    installButton: 'अॅप इंस्टॉल करा',
+    installManual: 'EcoFarmLogix इंस्टॉल करण्यासाठी:',
+    installAndroid: 'मेनू (⋮) टॅप करा → "होम स्क्रीनवर जोडा"',
+    installIOS: 'शेअर टॅप करा → "होम स्क्रीनवर जोडा"',
+    installDesktop: 'अॅड्रेस बारमधील इंस्टॉल आयकॉनवर क्लिक करा',
   },
 
   // Notifications (सूचना)
