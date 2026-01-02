@@ -456,10 +456,14 @@ export default {
     appInstalledDesc: 'You can access EcoFarmLogix from your home screen',
     installAppDesc: 'Install EcoFarmLogix on your device for quick access and offline support.',
     installButton: 'Install App',
-    installManual: 'To install EcoFarmLogix:',
+    installManual: 'Quick Install Instructions:',
     installAndroid: 'Tap menu (⋮) → "Add to Home screen"',
     installIOS: 'Tap Share → "Add to Home Screen"',
-    installDesktop: 'Click install icon in address bar',
+    installDesktop: 'Click install icon (⊕) in address bar',
+    howToInstall: 'How to Install',
+    iosInstallSteps: '1. Tap the Share button (square with arrow)\n2. Scroll down and tap "Add to Home Screen"\n3. Tap "Add" to confirm',
+    androidInstallSteps: '1. Tap the menu button (⋮) in the top right\n2. Tap "Add to Home screen" or "Install app"\n3. Tap "Add" to confirm',
+    desktopInstallSteps: 'Look for the install icon (⊕) in the address bar and click it to install the app.',
   },
 
   // Notifications

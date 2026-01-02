@@ -170,29 +170,65 @@ export default function Settings() {
               </p>
             </div>
           </div>
-        ) : isInstallable ? (
+        ) : (
           <div>
             <p className="text-gray-600 dark:text-gray-400 mb-4">
               {t('settings.installAppDesc', 'Install EcoFarmLogix on your device for quick access and offline support.')}
             </p>
-            <button
-              onClick={installApp}
-              className="flex items-center gap-2 px-4 py-2 md:py-3 min-h-[44px] bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
-            >
-              <FiDownload className="w-5 h-5" />
-              {t('settings.installButton', 'Install App')}
-            </button>
-          </div>
-        ) : (
-          <div className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-            <p className="text-gray-600 dark:text-gray-400 mb-2">
-              {t('settings.installManual', 'To install EcoFarmLogix:')}
-            </p>
-            <ul className="text-sm text-gray-500 dark:text-gray-400 space-y-1 list-disc list-inside">
-              <li><strong>Android Chrome:</strong> {t('settings.installAndroid', 'Tap menu (⋮) → "Add to Home screen"')}</li>
-              <li><strong>iPhone Safari:</strong> {t('settings.installIOS', 'Tap Share → "Add to Home Screen"')}</li>
-              <li><strong>Desktop Chrome:</strong> {t('settings.installDesktop', 'Click install icon in address bar')}</li>
-            </ul>
+
+            {isInstallable ? (
+              <button
+                onClick={installApp}
+                className="flex items-center gap-2 px-4 py-2 md:py-3 min-h-[44px] bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+              >
+                <FiDownload className="w-5 h-5" />
+                {t('settings.installButton', 'Install App')}
+              </button>
+            ) : (
+              <div className="space-y-4">
+                {/* Show platform-specific install button */}
+                <button
+                  onClick={() => {
+                    // Detect platform and show appropriate instructions
+                    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+                    const isAndroid = /Android/.test(navigator.userAgent);
+
+                    if (isIOS) {
+                      alert(t('settings.iosInstallSteps', '1. Tap the Share button (square with arrow)\n2. Scroll down and tap "Add to Home Screen"\n3. Tap "Add" to confirm'));
+                    } else if (isAndroid) {
+                      alert(t('settings.androidInstallSteps', '1. Tap the menu button (⋮) in the top right\n2. Tap "Add to Home screen" or "Install app"\n3. Tap "Add" to confirm'));
+                    } else {
+                      alert(t('settings.desktopInstallSteps', 'Look for the install icon (⊕) in the address bar and click it to install the app.'));
+                    }
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 md:py-3 min-h-[44px] bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+                >
+                  <FiDownload className="w-5 h-5" />
+                  {t('settings.howToInstall', 'How to Install')}
+                </button>
+
+                {/* Also show text instructions */}
+                <div className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-2 font-medium">
+                    {t('settings.installManual', 'Quick Install Instructions:')}
+                  </p>
+                  <ul className="text-sm text-gray-500 dark:text-gray-400 space-y-2">
+                    <li className="flex items-start gap-2">
+                      <span className="text-green-500">•</span>
+                      <span><strong>Android Chrome:</strong> {t('settings.installAndroid', 'Tap menu (⋮) → "Add to Home screen"')}</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-green-500">•</span>
+                      <span><strong>iPhone Safari:</strong> {t('settings.installIOS', 'Tap Share → "Add to Home Screen"')}</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-green-500">•</span>
+                      <span><strong>Desktop Chrome:</strong> {t('settings.installDesktop', 'Click install icon (⊕) in address bar')}</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
