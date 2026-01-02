@@ -128,6 +128,9 @@ export default {
       HYDROPONIC: 'हायड्रोपोनिक',
       AQUAPONIC: 'अॅक्वापोनिक',
     },
+    downloadReport: 'अहवाल',
+    reportDownloaded: 'अहवाल यशस्वीरित्या डाउनलोड झाला',
+    noDataToDownload: 'डाउनलोड करण्यासाठी डेटा उपलब्ध नाही',
   },
 
   // Sensors

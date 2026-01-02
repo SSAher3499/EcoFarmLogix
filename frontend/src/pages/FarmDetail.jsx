@@ -16,9 +16,11 @@ import {
   FiPower,
   FiRefreshCw,
   FiAlertTriangle,
+  FiDownload,
 } from "react-icons/fi";
 import toast from "react-hot-toast";
 import { ChartBarIcon } from "@heroicons/react/24/outline";
+import { generateFarmReport } from "../services/pdf.service";
 
 // Sensor icon mapping
 const sensorIcons = {
@@ -76,6 +78,15 @@ export default function FarmDetail() {
       setLoading(false);
     }
   }, [farmId, t]);
+
+  const handleDownloadReport = () => {
+    if (dashboard) {
+      generateFarmReport(dashboard);
+      toast.success(t('farm.reportDownloaded', 'Report downloaded successfully'));
+    } else {
+      toast.error(t('farm.noDataToDownload', 'No data available to download'));
+    }
+  };
 
   useEffect(() => {
     loadDashboard();
@@ -262,6 +273,15 @@ export default function FarmDetail() {
             <ChartBarIcon className="w-4 h-4 md:w-5 md:h-5" />
             <span className="hidden sm:inline">{t('farm.history')}</span>
           </Link>
+
+          {/* Download Report - visible to all */}
+          <button
+            onClick={handleDownloadReport}
+            className="flex items-center gap-1 md:gap-2 px-3 md:px-4 py-2 md:py-2 min-h-[44px] bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm md:text-base whitespace-nowrap"
+          >
+            <FiDownload className="w-4 h-4 md:w-5 md:h-5" />
+            <span className="hidden sm:inline">{t('farm.downloadReport', 'Report')}</span>
+          </button>
 
           {/* Automation - only for users with permission */}
           {canViewAutomation && (

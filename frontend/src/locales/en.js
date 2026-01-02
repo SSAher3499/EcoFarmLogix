@@ -128,6 +128,9 @@ export default {
       HYDROPONIC: 'Hydroponic',
       AQUAPONIC: 'Aquaponic',
     },
+    downloadReport: 'Report',
+    reportDownloaded: 'Report downloaded successfully',
+    noDataToDownload: 'No data available to download',
   },
 
   // Sensors
