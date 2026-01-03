@@ -1,5 +1,5 @@
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 export const generateFarmReport = (farmData) => {
   const doc = new jsPDF();
@@ -47,7 +47,7 @@ export const generateFarmReport = (farmData) => {
     ['Total Actuators', String(farmData.stats?.totalActuators || 0)],
   ];
 
-  doc.autoTable({
+  autoTable(doc, {
     startY: yPos,
     head: [],
     body: farmDetails,
@@ -85,7 +85,7 @@ export const generateFarmReport = (farmData) => {
     });
 
     if (sensorData.length > 0) {
-      doc.autoTable({
+      autoTable(doc, {
         startY: yPos,
         head: [['Sensor', 'Reading', 'Last Updated']],
         body: sensorData,
@@ -127,7 +127,7 @@ export const generateFarmReport = (farmData) => {
     });
 
     if (actuatorData.length > 0) {
-      doc.autoTable({
+      autoTable(doc, {
         startY: yPos,
         head: [['Actuator', 'State', 'Last Action']],
         body: actuatorData,
@@ -161,7 +161,7 @@ export const generateFarmReport = (farmData) => {
       alert.createdAt ? new Date(alert.createdAt).toLocaleString() : 'N/A'
     ]);
 
-    doc.autoTable({
+    autoTable(doc, {
       startY: yPos,
       head: [['Type', 'Message', 'Time']],
       body: alertData,
@@ -192,4 +192,5 @@ export const generateFarmReport = (farmData) => {
   doc.save(fileName);
 };
 
+export { generateFarmReport };
 export default { generateFarmReport };

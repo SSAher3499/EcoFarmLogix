@@ -80,10 +80,21 @@ export default function FarmDetail() {
   }, [farmId, t]);
 
   const handleDownloadReport = () => {
+    console.log('Download button clicked');
+    console.log('Dashboard data:', dashboard);
+
     if (dashboard) {
-      generateFarmReport(dashboard);
-      toast.success(t('farm.reportDownloaded', 'Report downloaded successfully'));
+      console.log('Generating report...');
+      try {
+        generateFarmReport(dashboard);
+        console.log('Report generated successfully');
+        toast.success(t('farm.reportDownloaded', 'Report downloaded successfully'));
+      } catch (error) {
+        console.error('PDF generation error:', error);
+        toast.error(t('messages.updateFailed', 'Failed to generate report'));
+      }
     } else {
+      console.log('No dashboard data available');
       toast.error(t('farm.noDataToDownload', 'No data available to download'));
     }
   };
