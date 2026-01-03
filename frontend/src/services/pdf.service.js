@@ -191,6 +191,3 @@ export const generateFarmReport = (farmData) => {
   const fileName = `${farmData.farm?.name || 'Farm'}_Report_${new Date().toISOString().split('T')[0]}.pdf`;
   doc.save(fileName);
 };
-
-export { generateFarmReport };
-export default { generateFarmReport };

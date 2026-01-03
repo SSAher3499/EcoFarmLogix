@@ -6,6 +6,8 @@ import { useAuthStore } from './store/authStore';
 // Pages
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
 import MyFarms from './pages/MyFarms';
 import FarmDetail from './pages/FarmDetail';
@@ -66,6 +68,8 @@ function App() {
         {/* Public routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
 
         {/* Protected routes */}
         <Route path="/dashboard" element={

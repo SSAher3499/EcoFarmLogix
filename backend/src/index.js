@@ -11,6 +11,7 @@ const routes = require('./routes');
 const mqttService = require('./mqtt/mqtt.service');
 const websocketService = require('./services/websocket.service');
 const schedulerService = require('./services/schedule.service');
+const emailService = require('./services/email.service');
 const errorLogger = require('./utils/errorLogger');
 
 // Initialize Express app
@@ -111,11 +112,14 @@ app.use((err, req, res, next) => {
 async function startServer() {
   // Connect to database
   const dbConnected = await connectDatabase();
-  
+
   if (!dbConnected) {
     console.error('Failed to connect to database. Exiting...');
     process.exit(1);
   }
+
+  // Initialize Email service
+  emailService.initialize();
 
   // Initialize WebSocket server
   websocketService.initialize(server);
