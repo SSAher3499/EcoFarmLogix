@@ -1,13 +1,15 @@
-import { useState } from 'react';
-import { FiLock, FiEye, FiEyeOff, FiSave, FiDownload, FiCheckCircle, FiSmartphone } from 'react-icons/fi';
+import { useState, useEffect } from 'react';
+import { FiLock, FiEye, FiEyeOff, FiSave, FiDownload, FiCheckCircle, FiSmartphone, FiUser } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import { useTranslation } from '../hooks/useTranslation';
 import { usePWAInstall } from '../hooks/usePWAInstall';
+import { useAuthStore } from '../store/authStore';
 import api from '../services/api';
 
 export default function Settings() {
   const { t } = useTranslation();
   const { isInstallable, isInstalled, installApp } = usePWAInstall();
+  const { user } = useAuthStore();
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -17,6 +19,40 @@ export default function Settings() {
     newPassword: '',
     confirmPassword: ''
   });
+
+  // Profile state
+  const [profile, setProfile] = useState({
+    fullName: '',
+    phone: ''
+  });
+  const [profileLoading, setProfileLoading] = useState(false);
+
+  // Load user profile data
+  useEffect(() => {
+    if (user) {
+      setProfile({
+        fullName: user.fullName || '',
+        phone: user.phone || ''
+      });
+    }
+  }, [user]);
+
+  const handleUpdateProfile = async (e) => {
+    e.preventDefault();
+    setProfileLoading(true);
+    try {
+      const response = await api.put('/auth/profile', profile);
+      toast.success(t('settings.profileUpdated', 'Profile updated successfully'));
+      // Update local user data if needed
+      if (response.data?.data?.user) {
+        // The auth store should be updated automatically via API interceptor
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to update profile');
+    } finally {
+      setProfileLoading(false);
+    }
+  };
 
   const handleChangePassword = async (e) => {
     e.preventDefault();
@@ -52,8 +88,71 @@ export default function Settings() {
         {t('settings.title', 'Settings')}
       </h1>
 
+      {/* Profile Section */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-4 md:p-6 mb-6 transition-colors">
+        <h2 className="text-base md:text-lg font-semibold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
+          <FiUser className="w-5 h-5" />
+          {t('settings.profile', 'Profile')}
+        </h2>
+
+        <form onSubmit={handleUpdateProfile} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              {t('settings.fullName', 'Full Name')}
+            </label>
+            <input
+              type="text"
+              value={profile.fullName}
+              onChange={(e) => setProfile({ ...profile, fullName: e.target.value })}
+              className="w-full px-3 py-2 md:py-3 min-h-[44px] border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              {t('settings.phone', 'Phone Number')}
+            </label>
+            <input
+              type="tel"
+              value={profile.phone}
+              onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
+              className="w-full px-3 py-2 md:py-3 min-h-[44px] border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              {t('settings.email', 'Email')}
+            </label>
+            <input
+              type="email"
+              value={user?.email || ''}
+              disabled
+              className="w-full px-3 py-2 md:py-3 min-h-[44px] border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed"
+            />
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              {t('settings.emailCantChange', 'Email cannot be changed')}
+            </p>
+          </div>
+
+          <button
+            type="submit"
+            disabled={profileLoading}
+            className="flex items-center gap-2 px-4 py-2 md:py-3 min-h-[44px] bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors"
+          >
+            {profileLoading ? (
+              <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+            ) : (
+              <FiSave className="w-5 h-5" />
+            )}
+            {t('settings.saveProfile', 'Save Profile')}
+          </button>
+        </form>
+      </div>
+
       {/* Change Password Section */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-4 md:p-6 transition-colors">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-4 md:p-6 mb-6 transition-colors">
         <h2 className="text-base md:text-lg font-semibold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
           <FiLock className="w-5 h-5" />
           {t('settings.changePassword', 'Change Password')}

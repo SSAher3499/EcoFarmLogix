@@ -467,6 +467,13 @@ export default {
   // Settings
   settings: {
     title: 'Settings',
+    profile: 'Profile',
+    fullName: 'Full Name',
+    phone: 'Phone Number',
+    email: 'Email',
+    emailCantChange: 'Email cannot be changed',
+    saveProfile: 'Save Profile',
+    profileUpdated: 'Profile updated successfully',
     changePassword: 'Change Password',
     currentPassword: 'Current Password',
     newPassword: 'New Password',

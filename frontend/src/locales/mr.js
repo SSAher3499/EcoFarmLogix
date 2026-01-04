@@ -467,6 +467,13 @@ export default {
   // Settings
   settings: {
     title: 'सेटिंग्ज',
+    profile: 'प्रोफाइल',
+    fullName: 'पूर्ण नाव',
+    phone: 'फोन नंबर',
+    email: 'ईमेल',
+    emailCantChange: 'ईमेल बदलता येत नाही',
+    saveProfile: 'प्रोफाइल सेव्ह करा',
+    profileUpdated: 'प्रोफाइल यशस्वीरित्या अपडेट झाले',
     changePassword: 'पासवर्ड बदला',
     currentPassword: 'सध्याचा पासवर्ड',
     newPassword: 'नवीन पासवर्ड',

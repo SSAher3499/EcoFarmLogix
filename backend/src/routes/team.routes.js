@@ -256,16 +256,16 @@ router.post(
 );
 
 /**
- * PUT /api/v1/farms/:farmId/team/:memberId
+ * PUT /api/v1/farms/:farmId/team/:userId
  * Update team member role
  * Only SUPER_ADMIN and Farm OWNER can update
  */
 router.put(
-  "/farms/:farmId/team/:memberId",
+  "/farms/:farmId/team/:userId",
   checkTeamPermission("invite"),
   async (req, res, next) => {
     try {
-      const { memberId } = req.params;
+      const { farmId, userId } = req.params;
       const { role } = req.body;
 
       // Validate role
@@ -277,8 +277,14 @@ router.put(
         });
       }
 
+      // Use composite key to find and update the FarmUser record
       const farmUser = await prisma.farmUser.update({
-        where: { id: memberId },
+        where: {
+          farmId_userId: {
+            farmId: farmId,
+            userId: userId
+          }
+        },
         data: { role },
         select: {
           id: true,
@@ -305,19 +311,25 @@ router.put(
 );
 
 /**
- * DELETE /api/v1/farms/:farmId/team/:memberId
+ * DELETE /api/v1/farms/:farmId/team/:userId
  * Remove team member from farm
  * Only SUPER_ADMIN and Farm OWNER can remove
  */
 router.delete(
-  "/farms/:farmId/team/:memberId",
+  "/farms/:farmId/team/:userId",
   checkTeamPermission("invite"),
   async (req, res, next) => {
     try {
-      const { memberId } = req.params;
+      const { farmId, userId } = req.params;
 
+      // Use composite key to find and update the FarmUser record
       await prisma.farmUser.update({
-        where: { id: memberId },
+        where: {
+          farmId_userId: {
+            farmId: farmId,
+            userId: userId
+          }
+        },
         data: { isActive: false },
       });
 
